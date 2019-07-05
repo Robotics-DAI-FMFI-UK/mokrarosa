@@ -1,3 +1,4 @@
+#include <EEPROM.h>
 #include <Servo.h>
 
 #define LP1 0
@@ -67,6 +68,9 @@ void print_usage()
   Serial.println(F("Print the sequence: SPACE"));
   Serial.println(F("Load the sequence: L"));
   Serial.println(F("Play the sequence: /"));
+  Serial.println(F("Repetitive play: \\"));
+  Serial.println(F("Save to EEPROM: E"));
+  Serial.println(F("Load from EEPROM: O")); 
   Serial.println(F("Restart: R"));
   Serial.println(F("Print help: H"));
   Serial.println(F("Undo to last saved position: U"));
@@ -115,23 +119,29 @@ void dump_sequence()
   Serial.println(F("---"));
 }
 
-void play_sequence()
+void play_sequence(uint8_t repete)
 {
-  for (int i = 0; i < seq_length; i++)
+  do 
   {
-    dump_row(i);
-    if ((delaj[i] == 0) || (i == 0))
-      for (int j = 0; j < 8; j++)
-        legs[j].write(seq[i][j]);
-    else for (int k = 0; k < 100; k++)
+    for (int i = 0; i < seq_length; i++)
     {
-      for (int j = 0; j < 8; j++)
+      if (Serial.available()) { Serial.read(); break; }
+      dump_row(i);
+      if ((delaj[i] == 0) || (i == 0))
+        for (int j = 0; j < 8; j++)
+          legs[j].write(seq[i][j]);
+      else for (int k = 0; k < 100; k++)
       {
-        legs[j].write(seq[i - 1][j] + ((int)(seq[i][j] - seq[i - 1][j]) * k) / 100);
-      }
-      delay(delaj[i]);
-    } 
-  }
+        for (int j = 0; j < 8; j++)
+        {
+          legs[j].write(seq[i - 1][j] + ((int)(seq[i][j] - seq[i - 1][j]) * k) / 100);
+        }
+        delay(delaj[i]);
+      } 
+    }
+  } while (repete);
+  for (int i = 0; i < 8; i++)
+    legv[i] = seq[seq_length-1][i];
 }
 
 void load_sequence()
@@ -213,7 +223,7 @@ void undo_step()
   uint8_t changed = 0;
   for (int i = 0; i < 8; i++)
     if (seq[seq_length][i] != legv[i]) changed = 1;
-  if (changed)
+  if (!changed)
   {
     if (seq_length == 0)
     {
@@ -239,6 +249,56 @@ void undo_step()
     legv[i] = seq[seq_length - 1][i];
     legs[i].write(legv[i]);
   }
+}
+
+void store_to_EEPROM()
+{
+  if (seq_length == 0)
+  {
+    Serial.println("nothing to store");
+    return;
+  }
+  Serial.print(F("Write sequence to EEPROM? [y/n]: "));
+  while (!Serial.available());
+  char c = Serial.read();
+  Serial.println(c);
+  if (c != 'y') return;
+  
+  EEPROM.write(0, '@'); 
+  EEPROM.write(1, (uint8_t)seq_length);
+  for (int i = 0; i < seq_length; i++)
+  {
+    for (int j = 0; j < 8; j++)
+      EEPROM.write(i*9 + j, seq[i][j]);
+    EEPROM.write(i*9 + 8, delaj[i]);
+  }
+
+  Serial.println(F("Written."));
+}
+
+void load_from_EEPROM()
+{
+  Serial.print(F("Read sequence from EEPROM [y/n]: "));
+  while (!Serial.available());
+  char c = Serial.read();
+  Serial.println(c);
+  if (c != 'y') return;
+
+  if (EEPROM.read(0) != '@')
+  {
+    Serial.println("nothing in EEPROM");
+    return;
+  }
+
+  seq_length = EEPROM.read(1);
+  for (int i = 0; i < seq_length; i++)
+  {
+    for (int j = 0; j < 8; j++)
+      seq[i][j] = EEPROM.read(i*9 + j);
+    delaj[i] = EEPROM.read(i*9 + 8);
+  }
+  Serial.print(seq_length);
+  Serial.println(" positions.");
 }
 
 void loop() 
@@ -277,7 +337,13 @@ void loop()
     else if (c == ' ')
       dump_sequence();
     else if (c == '/')
-      play_sequence();
+      play_sequence(0);
+    else if (c == '\\')
+      play_sequence(1);
+    else if (c == 'E')
+      store_to_EEPROM();
+    else if (c == 'O')
+      load_from_EEPROM();
     else if (c == 'R')
     {
       Serial.print(F("Discard? [y/n]: "));
