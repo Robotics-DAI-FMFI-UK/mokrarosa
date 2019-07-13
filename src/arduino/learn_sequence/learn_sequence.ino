@@ -14,8 +14,8 @@
 
 Servo legs[8];
 uint8_t legv[8];
-char pluskey[] = {'1', '2', '3', '4', '!', '@', '#', '$'};
-char minuskey[] = {'0', '9', '8', '7', ')', '(', '*', '&'};
+char pluskey[] = {'q', 'w', '3', '4', 'a', 'x', 'c', 'f'};
+char minuskey[] = {'1', '2', 'e', 'r', 'z', 's', 'd', 'v'};
 char key_step_plus = '+';
 char key_step_minus = '-';
 int8_t step_size;
@@ -24,7 +24,7 @@ uint8_t seq[MAX_SEQ_LENGTH][8];
 uint8_t delaj[MAX_SEQ_LENGTH];
 uint8_t del = 0;
 
-uint8_t initial[] = {104, 55, 55, 125, 17, 17, 17, 17};
+uint8_t initial[] = {68,121,123,61,160,25,9,166};
 
 void setup() 
 {
@@ -364,3 +364,4 @@ void loop()
   }
   delay(1);
 }
+
