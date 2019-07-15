@@ -347,6 +347,7 @@ void skontroluj_baterku()
 
 void loop() 
 {
+  skontroluj_baterku();
   if (Serial.available())
   {
     char c = Serial.read();
