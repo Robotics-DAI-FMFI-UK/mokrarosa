@@ -12,6 +12,8 @@
 
 #define MAX_SEQ_LENGTH 100
 
+#define WARN_LED 13
+
 Servo legs[8];
 uint8_t legv[8];
 char pluskey[] = {'q', 'w', '3', '4', 'a', 'x', 'c', 'f'};
@@ -299,6 +301,48 @@ void load_from_EEPROM()
   }
   Serial.print(seq_length);
   Serial.println(" positions.");
+}
+
+void skontroluj_baterku()
+{
+  static long posledne_meranie = 0;
+  long tm = millis();
+  if (tm - posledne_meranie > 500)
+  {
+    posledne_meranie = tm;
+    analogReference(INTERNAL); 
+    float volt = analogRead(A3); 
+    analogReference(DEFAULT);
+    if (volt * 0.01181640625 < 6.4)  // volt * 1.1 * 242 / 22 / 1023  (22 KOhm out of 220+22=242 KOhm)
+    {
+      Serial.println(F("!!!!!!!!!!!!!!!! Nabit baterky !!!!!!!!!!!!!!!!!!!!"));
+      while(1)
+      {
+        for (uint8_t i = 0; i < 3; i++)
+        {
+          digitalWrite(WARN_LED, HIGH);
+          delay(100);
+          digitalWrite(WARN_LED, LOW);
+          delay(50);
+        }
+        for (uint8_t i = 0; i < 3; i++)
+        {
+          digitalWrite(WARN_LED, HIGH);
+          delay(300);
+          digitalWrite(WARN_LED, LOW);
+          delay(50);
+        }
+        for (uint8_t i = 0; i < 3; i++)
+        {
+          digitalWrite(WARN_LED, HIGH);
+          delay(100);
+          digitalWrite(WARN_LED, LOW);
+          delay(50);
+        }
+        delay(500);
+      }
+    }
+  }
 }
 
 void loop() 
