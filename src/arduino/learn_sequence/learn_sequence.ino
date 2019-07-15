@@ -269,8 +269,8 @@ void store_to_EEPROM()
   for (int i = 0; i < seq_length; i++)
   {
     for (int j = 0; j < 8; j++)
-      EEPROM.write(i*9 + j, seq[i][j]);
-    EEPROM.write(i*9 + 8, delaj[i]);
+      EEPROM.write(1 + i*9 + j, seq[i][j]);
+    EEPROM.write(1 + i*9 + 8, delaj[i]);
   }
 
   Serial.println(F("Written."));
@@ -294,8 +294,8 @@ void load_from_EEPROM()
   for (int i = 0; i < seq_length; i++)
   {
     for (int j = 0; j < 8; j++)
-      seq[i][j] = EEPROM.read(i*9 + j);
-    delaj[i] = EEPROM.read(i*9 + 8);
+      seq[i][j] = EEPROM.read(1 + i*9 + j);
+    delaj[i] = EEPROM.read(1 + i*9 + 8);
   }
   Serial.print(seq_length);
   Serial.println(" positions.");
@@ -364,4 +364,3 @@ void loop()
   }
   delay(1);
 }
-
