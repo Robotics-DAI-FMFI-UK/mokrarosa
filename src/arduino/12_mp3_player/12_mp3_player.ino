@@ -65,10 +65,3 @@ void mp3_send_packet(uint8_t cmd, uint16_t param)
   mp3_send_byte(MP3_OUTPUT_PIN, (uint8_t)(chksm & 0xFF));
   mp3_send_byte(MP3_OUTPUT_PIN, 0xEF);
 }
-
-      delay(500);
-      jazda = 1;
-    }    
-  }
-}
-
