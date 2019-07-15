@@ -125,7 +125,7 @@ void play_sequence(uint8_t repete)
   {
     for (int i = 0; i < seq_length; i++)
     {
-      if (Serial.available()) { Serial.read(); break; }
+      if (Serial.available()) { Serial.read(); repete = 0; break; }
       dump_row(i);
       if ((delaj[i] == 0) || (i == 0))
         for (int j = 0; j < 8; j++)
