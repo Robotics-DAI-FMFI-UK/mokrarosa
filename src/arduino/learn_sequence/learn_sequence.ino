@@ -32,25 +32,31 @@ void setup()
 {
   Serial.begin(9600);
   legs[LP1].attach(3);
-  legs[LZ1].attach(4);
-  legs[PP1].attach(10);
-  legs[PZ1].attach(8);
+  legs[LZ1].attach(10);
+  legs[PP1].attach(7);
+  legs[PZ1].attach(5);
 
   legs[LP2].attach(2);
-  legs[LZ2].attach(5);
-  legs[PP2].attach(11);
-  legs[PZ2].attach(9);
+  legs[LZ2].attach(11);
+  legs[PP2].attach(6);
+  legs[PZ2].attach(4);
+
   Serial.println(F("Hi!"));
 
-  for (int i = 0; i < 8; i++)
-    legv[i] = initial[i];
-    
-  seq_length = 0;
-
-  for (int i = 0; i < 8; i++)
-    legs[i].write(legv[i]);
   step_size = 1;
-  print_usage();
+
+  if (load_autostart()) play_sequence(1);
+  else
+  {
+    for (int i = 0; i < 8; i++)
+      legv[i] = initial[i];
+      
+    seq_length = 0;
+  
+    for (int i = 0; i < 8; i++)
+      legs[i].write(legv[i]);
+    print_usage();
+  }
 }
 
 void print_usage()
@@ -72,7 +78,8 @@ void print_usage()
   Serial.println(F("Play the sequence: /"));
   Serial.println(F("Repetitive play: \\"));
   Serial.println(F("Save to EEPROM: E"));
-  Serial.println(F("Load from EEPROM: O")); 
+  Serial.println(F("Load from EEPROM: O"));
+  Serial.println(F("Toggle autostart: A")); 
   Serial.println(F("Restart: R"));
   Serial.println(F("Print help: H"));
   Serial.println(F("Undo to last saved position: U"));
@@ -244,7 +251,8 @@ void undo_step()
   {
     Serial.print(F("Undo? [y/n]: "));
     while (!Serial.available());
-    if (Serial.read() == 'n') return;
+    char c = Serial.read();
+    if (c == 'n') return;
   }
   for (int i = 0; i < 8; i++)
   {
@@ -271,21 +279,52 @@ void store_to_EEPROM()
   for (int i = 0; i < seq_length; i++)
   {
     for (int j = 0; j < 8; j++)
-      EEPROM.write(1 + i*9 + j, seq[i][j]);
-    EEPROM.write(1 + i*9 + 8, delaj[i]);
+      EEPROM.write(2 + i*9 + j, seq[i][j]);
+    EEPROM.write(2 + i*9 + 8, delaj[i]);
   }
 
   Serial.println(F("Written."));
 }
 
-void load_from_EEPROM()
+uint8_t load_autostart()
 {
-  Serial.print(F("Read sequence from EEPROM [y/n]: "));
-  while (!Serial.available());
-  char c = Serial.read();
-  Serial.println(c);
-  if (c != 'y') return;
+  if (EEPROM.read(999) == '~')
+  {
+    uint8_t autostart = EEPROM.read(1000);
+    if (autostart) load_from_EEPROM(0);
+    return autostart; 
+  }
+  else return 0;  
+}
 
+void toggle_autostart()
+{
+  uint8_t autostart = 0;
+  if (EEPROM.read(999) == '~')
+    autostart = EEPROM.read(1000);
+  if (autostart)
+  {
+    Serial.println(F("Autostart is OFF"));
+    EEPROM.write(1000, 0);
+  }
+  else
+  {
+    Serial.println(F("Autostart is ON"));
+    EEPROM.write(999, '~');
+    EEPROM.write(1000, 1);
+  }
+}
+
+void load_from_EEPROM(uint8_t confirm)
+{
+  if (confirm)
+  {
+    Serial.print(F("Read sequence from EEPROM [y/n]: "));
+    while (!Serial.available());
+    char c = Serial.read();
+    Serial.println(c);
+    if (c != 'y') return;
+  }
   if (EEPROM.read(0) != '@')
   {
     Serial.println("nothing in EEPROM");
@@ -296,8 +335,8 @@ void load_from_EEPROM()
   for (int i = 0; i < seq_length; i++)
   {
     for (int j = 0; j < 8; j++)
-      seq[i][j] = EEPROM.read(1 + i*9 + j);
-    delaj[i] = EEPROM.read(1 + i*9 + 8);
+      seq[i][j] = EEPROM.read(2 + i*9 + j);
+    delaj[i] = EEPROM.read(2 + i*9 + 8);
   }
   Serial.print(seq_length);
   Serial.println(" positions.");
@@ -313,7 +352,7 @@ void skontroluj_baterku()
     analogReference(INTERNAL); 
     float volt = analogRead(A3); 
     analogReference(DEFAULT);
-    if (volt * 0.01181640625 < 6.4)  // volt * 1.1 * 242 / 22 / 1023  (22 KOhm out of 220+22=242 KOhm)
+    if (volt * 0.01181640625 < 6.2)  // volt * 1.1 * 242 / 22 / 1023  (22 KOhm out of 220+22=242 KOhm)
     {
       Serial.println(F("!!!!!!!!!!!!!!!! Nabit baterky !!!!!!!!!!!!!!!!!!!!"));
       while(1)
@@ -325,6 +364,7 @@ void skontroluj_baterku()
           digitalWrite(WARN_LED, LOW);
           delay(50);
         }
+        delay(300);
         for (uint8_t i = 0; i < 3; i++)
         {
           digitalWrite(WARN_LED, HIGH);
@@ -332,6 +372,7 @@ void skontroluj_baterku()
           digitalWrite(WARN_LED, LOW);
           delay(50);
         }
+        delay(300);
         for (uint8_t i = 0; i < 3; i++)
         {
           digitalWrite(WARN_LED, HIGH);
@@ -388,7 +429,9 @@ void loop()
     else if (c == 'E')
       store_to_EEPROM();
     else if (c == 'O')
-      load_from_EEPROM();
+      load_from_EEPROM(1);
+    else if (c == 'A')
+      toggle_autostart();
     else if (c == 'R')
     {
       Serial.print(F("Discard? [y/n]: "));
