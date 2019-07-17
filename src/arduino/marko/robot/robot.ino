@@ -8,26 +8,32 @@
  * Author of the way of movement: Lukáš Johny Jonathan Jacko
  */
 
+
+// include
 #include <Servo.h>
 #include <SoftwareSerial.h>
 
+
+// define
 #define MAX_VOLTAGE 8.4
 #define MIN_VOLTAGE 6
+
 #define LED 13
 
 #define BATTERY 1
 #define USB 0
 
+// variables declaration
 SoftwareSerial Bluetooth(10, 11);
 
 Servo ZLK, ZL, PLK, PL;
 Servo ZPK, ZP, PPK, PP;
 
-int readInAdvance[2];
 int latency = 70;
 float batteryLevel, batteryVoltage;
 int source;
 
+// finding out source - usb/battery
 float findOutSource() {
   analogReference(INTERNAL); 
   float volt = analogRead(A7); 
@@ -52,9 +58,34 @@ void setup() {
   if(findOutSource() > 5) {
     source = BATTERY;
     Serial.println("Source: Battery");
+    digitalWrite(LED, HIGH);
+    delay(200);
+    digitalWrite(LED, LOW);
+    delay(200);
+    digitalWrite(LED, HIGH);
+    delay(200);
+    digitalWrite(LED, LOW);
+    delay(200);
+    digitalWrite(LED, HIGH);
+    delay(200);
+    digitalWrite(LED, LOW);
+    delay(200);
+    digitalWrite(LED, HIGH);
+    delay(200);
+    digitalWrite(LED, LOW);
+    delay(200);
   }
   else {
     Serial.println("Source: USB");
+    digitalWrite(LED, HIGH);
+    delay(500);
+    digitalWrite(LED, LOW);
+    delay(500);
+    digitalWrite(LED, HIGH);
+    delay(500);
+    digitalWrite(LED, LOW);
+    delay(500);
+    digitalWrite(LED, HIGH);
   }
 }
 
@@ -63,14 +94,14 @@ void moveFL() {
   delay(latency);
   ZL.write(90);
   delay(latency);
-  ZLK.write(0);
+  ZLK.write(5);
   delay(latency);
 
   PLK.write(90);
   delay(latency);
-  PL.write(0);
+  PL.write(5);
   delay(latency);
-  PLK.write(180);
+  PLK.write(175);
   delay(latency);
   kalibrationF();
 }
@@ -80,14 +111,14 @@ void moveFR() {
   delay(latency);
   ZP.write(90);
   delay(latency);
-  ZPK.write(180);
+  ZPK.write(175);
   delay(latency);
 
   PPK.write(90);
   delay(latency);
-  PP.write(180);
+  PP.write(175);
   delay(latency);
-  PPK.write(0);
+  PPK.write(5);
   delay(latency);
   kalibrationF();
 }
@@ -97,14 +128,14 @@ void moveBL() {
   delay(latency);
   PL.write(90);
   delay(latency);
-  PLK.write(180);
+  PLK.write(175);
   delay(latency);
   
   ZLK.write(90);
   delay(latency);
-  ZL.write(180);
+  ZL.write(175);
   delay(latency);
-  ZLK.write(0);
+  ZLK.write(5);
   delay(latency);
   kalibrationB();
 }
@@ -114,14 +145,14 @@ void moveBR() {
   delay(latency);
   PP.write(90);
   delay(latency);
-  PPK.write(0);
+  PPK.write(5);
   delay(latency);
   
   ZPK.write(90);
   delay(latency);
-  ZP.write(0);
+  ZP.write(5);
   delay(latency);
-  ZPK.write(180);
+  ZPK.write(175);
   delay(latency);
   kalibrationB();
 }
@@ -161,15 +192,30 @@ void right() {
   delay(latency);
   moveFL();
 }
+/*
+void sleep() {
+  static bool isSleep;
 
+  if (!isSleep) {
+    ZLK.write(90);
+    ZL.write(100);
+    PLK.write(90);
+    PL.write(80);
+    ZPK.write(90);
+    ZP.write(80);
+    PPK.write(90);
+    PP.write(100);
+  }
+}
+*/
 void kalibration() {
-  ZLK.write(0);
+  ZLK.write(5);
   ZL.write(135);
-  PLK.write(180);
+  PLK.write(175);
   PL.write(45);
-  ZPK.write(180);
+  ZPK.write(175);
   ZP.write(45);
-  PPK.write(0);
+  PPK.write(5);
   PP.write(135);
 }
 
@@ -223,7 +269,7 @@ void measureBatteryLevel() {
 }
 
 void antiSpam() {
-  int noAvailableToRead = Serial.available() - 2;
+  int noAvailableToRead = Serial.available() - 1;
   for (int i = 0; i < noAvailableToRead; i++) {
     Serial.read();
   }
