@@ -1,6 +1,6 @@
 #include <Servo.h>
 #include <SoftwareSerial.h>
-SoftwareSerial Bluetooth(8, 9);
+SoftwareSerial Bluetooth(2, 4);
 int cas = 50;
 int inp = 0;
 
@@ -15,11 +15,11 @@ Servo PP;
 
 void setup() {
   Bluetooth.begin(9600);
-  ZLK.attach(1);
-  ZL.attach(0);
-  PLK.attach(2);
-  PL.attach(3);
-  ZPK.attach(4);
+  ZLK.attach(8);
+  ZL.attach(9);
+  PLK.attach(10);
+  PL.attach(11);
+  ZPK.attach(3);
   ZP.attach(5);
   PPK.attach(6);
   PP.attach(7);
