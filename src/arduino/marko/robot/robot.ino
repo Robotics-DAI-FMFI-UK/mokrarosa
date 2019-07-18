@@ -296,7 +296,7 @@ float measureBatteryVoltage() {
 }
 
 void lowBattery() {
-  Serial.println("LOW BATTERY! PLEASE RECHARGE!");
+  Serial.println("LOW BATTERY! PLEASE CHARGE!");
   digitalWrite(LED, HIGH);
   delay(500);
   digitalWrite(LED, LOW);
