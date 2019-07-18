@@ -370,11 +370,9 @@ void loop() {
     lastTime = millis();
   }
   else if (tm - lastTime > 5000) {
-    lastTime = tm;
     sleep();
   }
   else if (tm - lastTime > 120000) {
-    lastTime = tm;
     standBy();
   }
 }
