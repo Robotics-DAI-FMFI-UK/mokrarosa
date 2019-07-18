@@ -105,6 +105,8 @@ void standBy() {
   digitalWrite(LED, LOW);
   delay(300);
 
+  Serial.println("Wait please...");
+
   setup();
 }
 
