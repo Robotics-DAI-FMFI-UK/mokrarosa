@@ -381,7 +381,7 @@ void loop() {
   }
   else if (tm - lastTime > 5000) {
     sleep();
-    Serial.print("Time: ");
+    Serial.print("Sleeping time: ");
     Serial.println(tm - lastTime);
   }  
 }
