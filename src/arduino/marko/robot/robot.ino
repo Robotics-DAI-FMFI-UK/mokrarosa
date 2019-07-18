@@ -29,7 +29,7 @@ SoftwareSerial Bluetooth(10, 11);
 Servo ZLK, ZL, PLK, PL;
 Servo ZPK, ZP, PPK, PP;
 
-int latency = 70;
+int latency = 100;
 float batteryLevel, batteryVoltage;
 int source;
 unsigned long lastTime = 0;
@@ -58,6 +58,10 @@ void sleep() {
   PL.write(50);
   ZP.write(50);
   PP.write(130);
+  ZLK.write(90);
+  PLK.write(90);
+  ZPK.write(90);
+  PPK.write(90);
 }
 
 void standBy() { 
@@ -164,14 +168,14 @@ void moveFL() {
   delay(latency);
   ZL.write(90);
   delay(latency);
-  ZLK.write(5);
+  ZLK.write(0);
   delay(latency);
 
   PLK.write(90);
   delay(latency);
   PL.write(5);
   delay(latency);
-  PLK.write(175);
+  PLK.write(180);
   delay(latency);
   kalibrationF();
 }
@@ -181,14 +185,14 @@ void moveFR() {
   delay(latency);
   ZP.write(90);
   delay(latency);
-  ZPK.write(175);
+  ZPK.write(180);
   delay(latency);
 
   PPK.write(90);
   delay(latency);
   PP.write(175);
   delay(latency);
-  PPK.write(5);
+  PPK.write(0);
   delay(latency);
   kalibrationF();
 }
@@ -198,14 +202,14 @@ void moveBL() {
   delay(latency);
   PL.write(90);
   delay(latency);
-  PLK.write(175);
+  PLK.write(180);
   delay(latency);
   
   ZLK.write(90);
   delay(latency);
   ZL.write(175);
   delay(latency);
-  ZLK.write(5);
+  ZLK.write(0);
   delay(latency);
   kalibrationB();
 }
@@ -215,14 +219,14 @@ void moveBR() {
   delay(latency);
   PP.write(90);
   delay(latency);
-  PPK.write(5);
+  PPK.write(0);
   delay(latency);
   
   ZPK.write(90);
   delay(latency);
   ZP.write(5);
   delay(latency);
-  ZPK.write(175);
+  ZPK.write(180);
   delay(latency);
   kalibrationB();
 }
@@ -377,11 +381,11 @@ void loop() {
     }
     lastTime = millis();
   }
-  else if (tm - lastTime > 120000) {
+  else if (tm - lastTime > 300000) {
     standBy();
     lastTime = tm;
   }
-  else if (tm - lastTime > 5000) {
+  else if (tm - lastTime > 10000) {
     sleep();
     Serial.print("Sleeping time: ");
     Serial.println(tm - lastTime);
