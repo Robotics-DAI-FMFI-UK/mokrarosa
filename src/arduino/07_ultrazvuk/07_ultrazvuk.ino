@@ -3,6 +3,7 @@
 
 void setup() 
 {
+  Serial.begin(9600);
   pinMode(TRIG, OUTPUT);
   pinMode(ECHO, INPUT);
 }
