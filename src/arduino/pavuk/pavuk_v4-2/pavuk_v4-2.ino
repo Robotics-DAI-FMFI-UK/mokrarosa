@@ -8,6 +8,7 @@ int b = 0;
 int c = 0;
 int d = 0;
 int Time = 500;
+char buffet[1];
 
 Servo ZLK;
 Servo ZL;
@@ -28,6 +29,8 @@ void setup() {
   ZP.attach(5);
   PPK.attach(6);
   PP.attach(7);
+  pinMode(12, OUTPUT);
+  digitalWrite(12, LOW);
 }
 
 void posunDL(){
@@ -153,6 +156,7 @@ void safe(){
   ZP.write(0);
   delay(Time);
 }
+
 void kalibrace(){
   ZLK.write(0);
   ZL.write(135);
@@ -215,11 +219,40 @@ void lavo(){
   posunDR();
 }
 
+void antispam(){
+  int index = 0;
+  while (Bluetooth.available() > 0){
+    buffet[index] = Bluetooth.read();
+    index++;
+    if (index > 0){
+      index = 0;
+    }
+  }
+}
+
+float zmeraj_baterku(){
+  float avg = 0;
+  analogReference(INTERNAL); 
+  float volt = analogRead(A3); 
+  analogReference(DEFAULT);
+  for (int i=0; i < 10; i++){
+    avg = avg + volt * 0.01181640625;
+    delay(10);
+  }
+  avg = avg / 10;
+  if (avg <= 6){
+    return 1;
+  }
+  else if (avg > 6){
+    return 0;
+  }
+}
 
 void loop() {
   //kalibrace();
   if (Bluetooth.available()){
-      inp = Bluetooth.read();
+      antispam();
+      inp = buffet[0];
       if (inp == '1'){
         dopredu();
       }
@@ -246,5 +279,12 @@ void loop() {
       if (inp == '9'){
         kalibrace();
       }
+    }
+    int bat = zmeraj_baterku();
+    while (bat == 1){
+      digitalWrite(12, LOW);
+      delay(100);
+      digitalWrite(12, HIGH);
+      delay(100);
     }
 }

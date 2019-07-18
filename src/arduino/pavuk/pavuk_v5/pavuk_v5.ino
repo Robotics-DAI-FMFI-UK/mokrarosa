@@ -28,12 +28,11 @@ Servo PPK;
 Servo PP;
 
 void setup() {
-  Bluetooth.begin(9600);
-  
-  ZLK.attach(8);
-  ZL.attach(9);
-  PLK.attach(10);
-  PL.attach(11);
+  Bluetooth.begin(9600); 
+  ZLK.attach(11);
+  ZL.attach(10);
+  PLK.attach(8);
+  PL.attach(9);
   ZPK.attach(3);
   ZP.attach(5);
   PPK.attach(6);
@@ -145,11 +144,11 @@ void safe(){
   ZL.write(50);
   ZP.write(130);
   delay(Time);
-  PLK.write(180);
-  PPK.write(0);
-  delay(Time);
   ZLK.write(180);
   ZPK.write(0);
+  delay(Time);
+  PLK.write(180);
+  PPK.write(0);
   delay(Time);
   ZL.write(180);
   ZP.write(0);
@@ -216,6 +215,24 @@ void lavo(){
   kalibraceD();
   delay(cas);
   posunDR();
+}
+
+float zmeraj_baterku(){
+  float avg = 0;
+  analogReference(INTERNAL); 
+  float volt = analogRead(A3); 
+  analogReference(DEFAULT);
+  for (int i=0; i < 10; i++){
+    avg = avg + volt * 0.01181640625;
+    delay(10);
+  }
+  avg = avg / 10;
+  if (avg <= 6){
+    return 1;
+  }
+  else if (avg > 6){
+    return 0;
+  }
 }
 
 void antispam(){
@@ -346,5 +363,12 @@ void loop() {
         kalibrace();
         delay(Time);
         }
+    }
+    int bat = zmeraj_baterku();
+    while (bat == 1){
+      digitalWrite(12, LOW);
+      delay(100);
+      digitalWrite(12, HIGH);
+      delay(100);
     }
 }
