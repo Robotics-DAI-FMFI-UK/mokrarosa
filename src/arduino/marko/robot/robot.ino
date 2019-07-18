@@ -47,6 +47,10 @@ void basicPosition() {
   PL.write(70);
   ZP.write(70);
   PP.write(110);
+  ZLK.write(90);
+  PLK.write(90);
+  ZPK.write(90);
+  PPK.write(90);
 }
 
 void sleep() {
@@ -65,6 +69,8 @@ void standBy() {
   PLK.write(45);
   ZPK.write(45);
   PPK.write(135);
+
+  Serial.println("STAND BY! PRESS 's'!");
 
   while (true) {
     digitalWrite(LED, HIGH);
@@ -369,10 +375,12 @@ void loop() {
     }
     lastTime = millis();
   }
-  else if (tm - lastTime > 5000) {
-    sleep();
-  }
   else if (tm - lastTime > 120000) {
     standBy();
   }
+  else if (tm - lastTime > 5000) {
+    sleep();
+    Serial.print("Time: ");
+    Serial.println(tm - lastTime);
+  }  
 }
