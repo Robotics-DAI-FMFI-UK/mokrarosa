@@ -377,6 +377,7 @@ void loop() {
   }
   else if (tm - lastTime > 120000) {
     standBy();
+    lastTime = tm;
   }
   else if (tm - lastTime > 5000) {
     sleep();
