@@ -32,6 +32,7 @@ Servo ZPK, ZP, PPK, PP;
 int latency = 70;
 float batteryLevel, batteryVoltage;
 int source;
+unsigned long lastTime = 0;
 
 // finding out source - usb/battery
 float findOutSource() {
@@ -39,6 +40,66 @@ float findOutSource() {
   float volt = analogRead(A7); 
   analogReference(DEFAULT);
   return volt * 0.006129032;  // volt * 1.1 * 57 / 10 / 1023
+}
+
+void basicPosition() {
+  ZL.write(110);
+  PL.write(70);
+  ZP.write(70);
+  PP.write(110);
+}
+
+void sleep() {
+  ZL.write(130);
+  PL.write(50);
+  ZP.write(50);
+  PP.write(130);
+}
+
+void standBy() { 
+  ZL.write(150);
+  PL.write(30);
+  ZP.write(30);
+  PP.write(150);
+  ZLK.write(135);
+  PLK.write(45);
+  ZPK.write(45);
+  PPK.write(135);
+
+  while (true) {
+    digitalWrite(LED, HIGH);
+    delay(750);
+    digitalWrite(LED, LOW);
+    delay(750);
+
+    if (Serial.available()) {
+      char c = Serial.read();
+      if (c == 's') {
+        break;
+      }
+    }
+    else if (Bluetooth.available()) {
+      char c = Bluetooth.read();
+      if (c == 's') {
+        break;
+      }
+    }
+  }
+
+  digitalWrite(LED, HIGH);
+  delay(300);
+  digitalWrite(LED, LOW);
+  delay(300);
+  digitalWrite(LED, HIGH);
+  delay(300);
+  digitalWrite(LED, LOW);
+  delay(300);
+  digitalWrite(LED, HIGH);
+  delay(300);
+  digitalWrite(LED, LOW);
+  delay(300);
+
+  setup();
 }
 
 void setup() {
@@ -87,6 +148,7 @@ void setup() {
     delay(500);
     digitalWrite(LED, HIGH);
   }
+  basicPosition();
 }
 
 void moveFL() {
@@ -192,22 +254,7 @@ void right() {
   delay(latency);
   moveFL();
 }
-/*
-void sleep() {
-  static bool isSleep;
 
-  if (!isSleep) {
-    ZLK.write(90);
-    ZL.write(100);
-    PLK.write(90);
-    PL.write(80);
-    ZPK.write(90);
-    ZP.write(80);
-    PPK.write(90);
-    PP.write(100);
-  }
-}
-*/
 void kalibration() {
   ZLK.write(5);
   ZL.write(135);
@@ -276,6 +323,7 @@ void antiSpam() {
 }
 
 void loop() {
+  unsigned long tm = millis();
   if(source) {
     measureBatteryLevel();
   }
@@ -298,5 +346,35 @@ void loop() {
       default:
         break;
     }
+    lastTime = millis();
+  }
+  else if (Bluetooth.available()) {
+    antiSpam();
+    char c = Bluetooth.read();
+    switch (c) {
+      case 'w':
+        forward();
+        break;
+      case 'a':
+        left();
+        break;
+      case 's':
+        backward();
+        break;
+      case 'd':
+        right();
+        break;
+      default:
+        break;
+    }
+    lastTime = millis();
+  }
+  else if (tm - lastTime > 5000) {
+    lastTime = tm;
+    sleep();
+  }
+  else if (tm - lastTime > 120000) {
+    lastTime = tm;
+    standBy();
   }
 }
