@@ -152,7 +152,6 @@ void cube(){
     ZPK.write(90);
     PPK.write(90);
 }
-
 void safe(){
   PL.write(0);
   PP.write(180);
@@ -163,11 +162,11 @@ void safe(){
   ZL.write(50);
   ZP.write(130);
   delay(Time);
-  PLK.write(180);
-  PPK.write(0);
-  delay(Time);
   ZLK.write(180);
   ZPK.write(0);
+  delay(Time);
+  PLK.write(180);
+  PPK.write(0);
   delay(Time);
   ZL.write(180);
   ZP.write(0);

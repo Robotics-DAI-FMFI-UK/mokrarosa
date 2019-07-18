@@ -31,15 +31,15 @@ uint8_t initial[] = {68,121,123,61,160,25,9,166};
 void setup() 
 {
   Serial.begin(9600);
-  legs[LP1].attach(11);
-  legs[LZ1].attach(9);
-  legs[PP1].attach(7);
-  legs[PZ1].attach(5);
+  legs[LP1].attach(11); //PL
+  legs[LZ1].attach(9);  //ZL
+  legs[PP1].attach(7);  //PP
+  legs[PZ1].attach(5);  //ZP
 
-  legs[LP2].attach(10);
-  legs[LZ2].attach(8);
-  legs[PP2].attach(6);
-  legs[PZ2].attach(3);
+  legs[LP2].attach(10); //PLK
+  legs[LZ2].attach(8);  //ZLK
+  legs[PP2].attach(6);  //PPK
+  legs[PZ2].attach(3);  //ZPK
 
   Serial.println(F("Hi!"));
 
