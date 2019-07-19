@@ -37,7 +37,7 @@ uint8_t seq[MAX_SEQ_LENGTH][8];
 uint8_t delaj[MAX_SEQ_LENGTH];
 uint8_t del = 0;
 
-uint8_t initial[] = {68,121,123,61,160,25,9,166};
+uint8_t initial[] = {45,135,135,45,180,0,0,180};
 
 MPU6050 mpu;
 int cas = 70;
@@ -86,7 +86,8 @@ void setup() {
   legs[PZ1].attach(5);
   legs[PP2].attach(6);
   legs[PP1].attach(7);
-  mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G);
+  // AK MATE MPU, tak odkomentujte:
+  //mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G);
 
   while (Serial.available()) Serial.read();
   Serial.println(F("Hi! Press a key for USB-powered run."));
@@ -396,9 +397,12 @@ void loop() {
       }
       delay(gyroT);
     }
-    Vector normAccel = mpu.readNormalizeAccel();
-    int pitch = -(atan2(normAccel.XAxis, sqrt(normAccel.YAxis*normAccel.YAxis + normAccel.ZAxis*normAccel.ZAxis))*180.0)/M_PI;
-    int roll = (atan2(normAccel.YAxis, normAccel.ZAxis)*180.0)/M_PI;
+    int pitch = 0;
+    int roll = 0;
+    // AK MATE MPU, tak odkomentujte:
+    //Vector normAccel = mpu.readNormalizeAccel();
+    //pitch = -(atan2(normAccel.XAxis, sqrt(normAccel.YAxis*normAccel.YAxis + normAccel.ZAxis*normAccel.ZAxis))*180.0)/M_PI;
+    //roll = (atan2(normAccel.YAxis, normAccel.ZAxis)*180.0)/M_PI;
 
     if (e == 1){
       if (roll > 34 and roll < 56 or roll > -56 and roll < -34){
