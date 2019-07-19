@@ -3,6 +3,27 @@
 #include <Wire.h>
 #include <MPU6050.h>
 
+// pin connections:
+// servos:
+//   left front upper:  D9
+//   left front lower:  D8
+//   left back upper:   D10
+//   left back lower:   D11
+//   right front upper: D7
+//   right front lower: D6
+//   right back upper:  D5
+//   right back lower:  D3
+// bluetooth:
+//    BT TX:  D2
+//    BT RX:  D4
+// mp3 player:
+//    RX:     A2
+// ultrasonic HC-SR04
+//    TRIG:   A0
+//    ECHO:   A1
+// battery voltage:
+//    Vbat:   A3
+
 #define MP3_OUTPUT_PIN 16   // connect Rx pin of DFPlayer to A2
 
 #define TRIG 14    // pin A0
