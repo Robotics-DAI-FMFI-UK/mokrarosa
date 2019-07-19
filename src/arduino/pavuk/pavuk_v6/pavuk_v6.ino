@@ -97,6 +97,18 @@ void setup() {
   pinMode(TRIG, OUTPUT);
   pinMode(ECHO, INPUT);
   Serial.begin(9600);
+
+  while (Serial.available()) Serial.read();
+  Serial.println(F("Hi! Press a key for USB-powered run."));
+  delay(2500);
+  if (Serial.available())
+  {
+    ignore_batteries = 1;
+    Serial.read();
+    Serial.println(F("USB-powered"));
+  }
+  else Serial.println(F("Bat.powered"));
+
   init_serial(9600);
   mp3_set_volume(30);
   delay(10);
@@ -113,14 +125,6 @@ void setup() {
   // AK MATE MPU, tak odkomentujte:
   //mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G);
 
-  while (Serial.available()) Serial.read();
-  Serial.println(F("Hi! Press a key for USB-powered run."));
-  delay(1500);
-  if (Serial.available())
-  {
-    ignore_batteries = 1;
-    Serial.read();
-  }
   
   step_size = 1;
 
@@ -680,8 +684,19 @@ void dump_state()
 void undo_step()
 {
   uint8_t changed = 0;
-  for (int i = 0; i < 8; i++)
-    if (seq[seq_length][i] != legv[i]) changed = 1;
+  if (seq_length > 0)
+    for (int i = 0; i < 8; i++)
+      if (seq[seq_length - 1][i] != legv[i]) changed = 1;
+  else
+  {
+    for (int i = 0; i < 8; i++)
+    {
+      legv[i] = initial[i];
+      legs[i].write(legv[i]);
+    } 
+    return;
+  }
+  
   if (!changed)
   {
     if (seq_length == 0)
@@ -702,6 +717,7 @@ void undo_step()
     Serial.print(F("Undo? [y/n]: "));
     while (!Serial.available());
     char c = Serial.read();
+    Serial.println(c);
     if (c == 'n') return;
   }
   for (int i = 0; i < 8; i++)
