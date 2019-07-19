@@ -21,6 +21,9 @@
 // ultrasonic HC-SR04
 //    TRIG:   A0
 //    ECHO:   A1
+// gyro (MPU-6050)
+//    SDA:    A4
+//    SCL:    A5
 // battery voltage:
 //    Vbat:   A3
 
