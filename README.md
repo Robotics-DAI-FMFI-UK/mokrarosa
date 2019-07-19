@@ -20,4 +20,4 @@ Files:
    * 12_mp3_player/  - start playing musing with DFPlayer Mini
    * learn_sequence/learn_sequence.ino  - interactive program for learning a choreography 
    
-  wiki https://github.com/Robotics-DAI-FMFI-UK/mokrarosa/wiki
+*  wiki https://github.com/Robotics-DAI-FMFI-UK/mokrarosa/wiki
