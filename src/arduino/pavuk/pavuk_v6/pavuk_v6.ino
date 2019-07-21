@@ -110,7 +110,7 @@ void setup() {
   else Serial.println(F("Bat.powered"));
 
   init_serial(9600);
-  mp3_set_volume(30);
+  mp3_set_volume(15);
   delay(10);
   mp3_play(1);
 
