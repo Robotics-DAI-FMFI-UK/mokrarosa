@@ -110,7 +110,7 @@ void setup() {
   else Serial.println(F("Bat.powered"));
 
   init_serial(9600);
-
+  
   legs[LZ2].attach(11);
   legs[LZ1].attach(10);
   legs[LP2].attach(8);
@@ -121,9 +121,13 @@ void setup() {
   legs[PP1].attach(7);
   // AK MATE MPU, tak odkomentujte:
   //mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G);
-  
+
   step_size = 1;
 
+  mp3_play(1);
+  delay(10);
+  mp3_set_volume(20);
+  
   if (load_autostart()) play_sequence(1);
   else
   {
@@ -136,9 +140,6 @@ void setup() {
       legs[i].write(legv[i]);
     print_usage();
   }
-  mp3_play(1);
-  delay(10);
-  mp3_set_volume(20);
 }
 
 void posunDL(){
@@ -383,7 +384,6 @@ void assist(){
 void loop() {
 
   if (serial_available()){
-      
       antispam();
       inp = buffet[0];
       if (inp == '0'){
@@ -601,6 +601,7 @@ void play_sequence(uint8_t repete)
         delay(delaj[i]);
       } 
     }
+    if (Serial.available()) { Serial.read(); break; }
   } while (repete);
   for (int i = 0; i < 8; i++)
     legv[i] = seq[seq_length-1][i];
@@ -864,6 +865,7 @@ void init_serial(uint32_t baud_rate)
 {
   pinMode(2, INPUT);
   pinMode(4, OUTPUT);
+  digitalWrite(2, HIGH);
 
   serial_state = SERIAL_STATE_IDLE;
 
@@ -876,6 +878,7 @@ void init_serial(uint32_t baud_rate)
   PCIFR &= ~4; //PCIF2;
   PCICR |= 4; // PCIE2;
 }
+
 
 ISR(PCINT2_vect)
 {
@@ -914,6 +917,7 @@ ISR(PCINT2_vect)
   } else
     next_bit_order = (tm - time_startbit_noticed - half_of_one_bit_duration) / one_bit_duration;
 }
+
 
 uint8_t serial_available()
 {
