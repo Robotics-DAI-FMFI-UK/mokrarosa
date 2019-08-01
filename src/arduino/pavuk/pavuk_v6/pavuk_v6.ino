@@ -147,14 +147,14 @@ void posunDL(){
   delay(cas);
   legs[LZ1].write(95);
   delay(cas);
-  legs[LZ2].write(0);
+  legs[LZ2].write(5);
   delay(cas);
 
   legs[LP2].write(90);
   delay(cas);
-  legs[LP1].write(0);
+  legs[LP1].write(5);
   delay(cas);
-  legs[LP2].write(180);
+  legs[LP2].write(175);
   delay(cas);
   kalibraceD();
 }
@@ -164,14 +164,14 @@ void posunDR(){
   delay(cas);
   legs[PZ1].write(105);
   delay(cas);
-  legs[PZ2].write(180);
+  legs[PZ2].write(175);
   delay(cas);
 
   legs[PP2].write(90);
   delay(cas);
-  legs[PP1].write(180);
+  legs[PP1].write(175);
   delay(cas);
-  legs[PP2].write(0);
+  legs[PP2].write(5);
   delay(cas);
   kalibraceD();
 }
@@ -181,14 +181,14 @@ void posunZL(){
   delay(cas);
   legs[LP1].write(70);
   delay(cas);
-  legs[LP2].write(180);
+  legs[LP2].write(175);
   delay(cas);
   
   legs[LZ2].write(90);
   delay(cas);
-  legs[LZ1].write(180);
+  legs[LZ1].write(175);
   delay(cas);
-  legs[LZ2].write(0);
+  legs[LZ2].write(5);
   delay(cas);
   kalibraceZ();
 }
@@ -198,35 +198,36 @@ void posunZR(){
   delay(cas);
   legs[PP1].write(100);
   delay(cas);
-  legs[PP2].write(0);
+  legs[PP2].write(5);
   delay(cas);
   
   legs[PZ2].write(90);
   delay(cas);
-  legs[PZ1].write(0);
+  legs[PZ1].write(5);
   delay(cas);
-  legs[PZ2].write(180);
+  legs[PZ2].write(175);
   delay(cas);
   kalibraceZ();
 }
 
 void Xattack(){
-  legs[PP1].write(180);
-  legs[LP1].write(0);
+  legs[PP1].write(175);
+  legs[LP1].write(5);
   legs[PZ1].write(90);
   legs[LZ1].write(90);
   delay(cas);
   legs[PP2].write(90);
   legs[LP2].write(90);
   delay(cas);
-  legs[PZ1].write(0);
-  legs[LZ1].write(180);
+  legs[PZ1].write(5);
+  legs[LZ1].write(175);
   delay(cas * 3);
-  legs[PP2].write(180);
-  legs[LP2].write(0);
+  legs[PP2].write(175);
+  legs[LP2].write(5);
   delay(cas * 2);
 }
 
+// lahnut
 void cube(){
     legs[LZ2].write(90);
     legs[LP2].write(90);
@@ -234,35 +235,36 @@ void cube(){
     legs[PP2].write(90);
 }
 
+// obratka
 void safe(){
-  legs[LP1].write(0);
-  legs[PP1].write(180);
+  legs[LP1].write(5);
+  legs[PP1].write(175);
   delay(Time);
-  legs[LP2].write(0);
-  legs[PP2].write(180);
+  legs[LP2].write(5);
+  legs[PP2].write(175);
   delay(Time);
   legs[LZ1].write(50);
   legs[PZ1].write(130);
   delay(Time);
-  legs[LZ2].write(180);
-  legs[PZ2].write(0);
+  legs[LZ2].write(175);
+  legs[PZ2].write(5);
   delay(Time);
-  legs[LP2].write(180);
-  legs[PP2].write(0);
+  legs[LP2].write(175);
+  legs[PP2].write(5);
   delay(Time);
-  legs[LZ1].write(180);
-  legs[PZ1].write(0);
+  legs[LZ1].write(175);
+  legs[PZ1].write(5);
   delay(Time);
 }
 
 void kalibrace(){
-  legs[LZ2].write(0);
+  legs[LZ2].write(5);
   legs[LZ1].write(135);
-  legs[LP2].write(180);
+  legs[LP2].write(175);
   legs[LP1].write(45);
-  legs[PZ2].write(180);
+  legs[PZ2].write(175);
   legs[PZ1].write(45);
-  legs[PP2].write(0);
+  legs[PP2].write(5);
   legs[PP1].write(135);
 }
 
