@@ -110,9 +110,6 @@ void setup() {
   else Serial.println(F("Bat.powered"));
 
   init_serial(9600);
-  mp3_set_volume(30);
-  delay(10);
-  mp3_play(1);
 
   legs[LZ2].attach(11);
   legs[LZ1].attach(10);
@@ -124,7 +121,6 @@ void setup() {
   legs[PP1].attach(7);
   // AK MATE MPU, tak odkomentujte:
   //mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G);
-
   
   step_size = 1;
 
@@ -140,6 +136,9 @@ void setup() {
       legs[i].write(legv[i]);
     print_usage();
   }
+  mp3_play(1);
+  delay(10);
+  mp3_set_volume(30);
 }
 
 void posunDL(){
