@@ -61,7 +61,7 @@ uint8_t seq[MAX_SEQ_LENGTH][8];
 uint8_t delaj[MAX_SEQ_LENGTH];
 uint8_t del = 0;
 
-uint8_t initial[] = {45,135,135,45,180,0,0,180};
+uint8_t initial[] = {45,135,135,45,175,5,5,175};
 
 MPU6050 mpu;
 int cas = 70;
