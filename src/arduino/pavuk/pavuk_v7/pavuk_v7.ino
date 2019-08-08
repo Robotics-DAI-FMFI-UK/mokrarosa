@@ -428,16 +428,7 @@ void assist(){
 }
 
 void loop() {
-  if (meraj() < 15)
-  {
-    if (ultrazvuk)
-    {
-      dozadu();
-      dozadu();
-      pravo();
-      pravo();
-    }
-  }
+
   if (serial_available()){
       antispam();
       inp = buffet[0];
