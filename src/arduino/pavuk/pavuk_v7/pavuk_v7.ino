@@ -603,7 +603,7 @@ void loop() {
       reset_pozicie();
     else if (c == 'H')
       print_usage();
-    else if (c == 'B');
+    else if (c == 'B')
       Serial.println(meraj_baterku());
   }  
 }
