@@ -497,7 +497,7 @@ void loop() {
       hore_nohami();
       je_hore_nohami = 1;
     }
-    else if (abs(roll) < 8)
+    else if (je_hore_nohami && (abs(roll) < 8))
     {
       dole_nohami();
       je_hore_nohami = 0;
