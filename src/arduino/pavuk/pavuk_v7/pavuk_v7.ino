@@ -428,7 +428,14 @@ void assist(){
 }
 
 void loop() {
-
+   if (meraj() < 15)
+   {
+      dopredu();
+      // dozadu();
+      // pravo();
+      // lavo();
+      // cube();
+   }
   if (serial_available()){
       antispam();
       inp = buffet[0];
@@ -592,10 +599,12 @@ void loop() {
       load_sequence();
     else if (c == 'U')
       undo_step();
-	else if (c == '*')
-	  reset_pozicie();
+    else if (c == '*')
+      reset_pozicie();
     else if (c == 'H')
       print_usage();
+    else if (c == 'B');
+      Serial.println(meraj_baterku());
   }  
 }
 
@@ -622,6 +631,7 @@ void print_usage()
   Serial.println(F("Toggle autostart: A")); 
   Serial.println(F("Erase sequence: R"));
   Serial.println(F("Initial position: *"));
+  Serial.println(F("Battery level (*100 V): B"));
   Serial.println(F("Print help: H"));
   Serial.println(F("Undo to last saved position: U"));
   Serial.println(F("(to insert a break, repeat the same position again with delay)"));
@@ -815,7 +825,7 @@ void undo_step()
   }
 }
 
-uint8_t ask_for_slot_num()
+int8_t ask_for_slot_num()
 {
   Serial.print(F("Seq.slot 1-3: "));
   while (!Serial.available());
@@ -836,7 +846,7 @@ void store_to_EEPROM()
     Serial.println("nothing to store");
     return;
   }
-  uint8_t prognum = ask_for_slot_num();
+  int8_t prognum = ask_for_slot_num();
   if (prognum < 0) return;
   
   Serial.print(F("Write sequence to EEPROM? [y/n]: "));
@@ -870,7 +880,7 @@ uint8_t load_autostart()
 
 void toggle_autostart()
 {
-  uint8_t autostart = ask_for_slot_num();
+  int8_t autostart = ask_for_slot_num();
   if (autostart < 0)
   {
       EEPROM.write(1023, 0);
@@ -889,7 +899,7 @@ void load_from_EEPROM(uint8_t prognum)
 {
   if (prognum == 0)
   {
-    uint8_t prognum = ask_for_slot_num();
+    int8_t prognum = ask_for_slot_num();
     if (prognum < 0) return;
     Serial.print(F("Read sequence from EEPROM [y/n]: "));
     while (!Serial.available());
@@ -915,6 +925,15 @@ void load_from_EEPROM(uint8_t prognum)
   Serial.println(" positions.");
 }
 
+int meraj_baterku()
+{
+  analogReference(INTERNAL); 
+  float volt = analogRead(A3); 
+  analogReference(DEFAULT);
+  // volt * 1.1 * 242 / 22 / 1023  (22 KOhm out of 220+22=242 KOhm)
+  return (int)(0.5 + 100.0 * volt * 0.01181640625);   
+}
+
 void skontroluj_baterku()
 {
   static long posledne_meranie = 0;
@@ -928,7 +947,7 @@ void skontroluj_baterku()
     analogReference(INTERNAL); 
     float volt = analogRead(A3); 
     analogReference(DEFAULT);
-    if (volt * 0.01181640625 < 6.2)  // volt * 1.1 * 242 / 22 / 1023  (22 KOhm out of 220+22=242 KOhm)
+    if (meraj_baterku() < 620)  
     {
       pocet_merani++;
       if (pocet_merani < 10) return;
