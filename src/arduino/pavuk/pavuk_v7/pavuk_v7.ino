@@ -171,6 +171,15 @@ void reset_pozicie()
       legs[i].write(legv[i]);
 }
 
+void pozicia_90()
+{
+    for (int i = 0; i < 8; i++)
+      legv[i] = 90;
+       
+    for (int i = 0; i < 8; i++)
+      legs[i].write(legv[i]);
+}
+
 void hore_nohami()
 {
     for (int i = 0; i < 8; i++)
@@ -431,15 +440,7 @@ void assist(){
 }
 
 void loop() {
-   digitalWrite(13, 0);
-   if (meraj() < 15)
-   {
-      dopredu();
-      // dozadu();
-      // pravo();
-      // lavo();
-      // cube();
-   }
+  
   if (serial_available()){
       antispam();
       inp = buffet[0];
@@ -605,6 +606,8 @@ void loop() {
       undo_step();
     else if (c == '*')
       reset_pozicie();
+    else if (c == '9')
+      pozicia_90();
     else if (c == 'H')
       print_usage();
     else if (c == 'B')
@@ -636,6 +639,7 @@ void print_usage()
   Serial.println(F("Erase sequence: R"));
   Serial.println(F("Initial position: *"));
   Serial.println(F("Battery level (*100 V): B"));
+  Serial.println(F("Position 90: 9"));
   Serial.println(F("Print help: H"));
   Serial.println(F("Undo to last saved position: U"));
   Serial.println(F("(to insert a break, repeat the same position again with delay)"));
@@ -1275,9 +1279,14 @@ int meraj()
   digitalWrite(TRIG, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG, LOW);
-  while (digitalRead(ECHO) == 0) {}
+  long pocitadlo = micros() + 10000;
+  while ((digitalRead(ECHO) == 0) & (micros() < pocitadlo)) { }
+  if (digitalRead(ECHO) == 0) return 255;
   long cas1 = micros();
-  while (digitalRead(ECHO) == 1) {}
+  pocitadlo = cas1 + 10000; 
+  while ((digitalRead(ECHO) == 1) && (micros() < pocitadlo)) { }
+  if (digitalRead(ECHO) == 1) return 255;
   long cas2 = micros();
   return (cas2 - cas1) / 58;
 }
+
