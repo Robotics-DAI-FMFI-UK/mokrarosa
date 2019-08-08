@@ -945,24 +945,30 @@ void SOS()
   for (uint8_t i = 0; i < 3; i++)
   {
     digitalWrite(WARN_LED, HIGH);
+    tone(13, 1680);
     delay(100);
     digitalWrite(WARN_LED, LOW);
+    noTone(13);
     delay(50);
   }
   delay(300);
   for (uint8_t i = 0; i < 3; i++)
   {
+    tone(13, 1680);
     digitalWrite(WARN_LED, HIGH);
     delay(300);
     digitalWrite(WARN_LED, LOW);
+    noTone(13);
     delay(50);
   }
   delay(300);
   for (uint8_t i = 0; i < 3; i++)
   {
     digitalWrite(WARN_LED, HIGH);
+    tone(13, 1680);
     delay(100);
     digitalWrite(WARN_LED, LOW);
+    noTone(13);
     delay(50);
   }
   delay(500);  
