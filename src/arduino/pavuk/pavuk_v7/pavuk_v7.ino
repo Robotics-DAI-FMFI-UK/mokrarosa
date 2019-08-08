@@ -104,6 +104,8 @@ static uint16_t half_of_one_bit_duration;
 static uint8_t ignore_batteries = 0;
 
 void setup() {
+  pinMode(WARN_LED, OUTPUT);
+  digitalWrite(WARN_LED, LOW);
   pinMode(TRIG, OUTPUT);
   pinMode(ECHO, INPUT);
   Serial.begin(9600);
@@ -157,6 +159,7 @@ void sound_greeting()
   delay(50);
   tone(13, 1760);
   delay(25);
+  noTone(13);
 }
 
 void reset_pozicie()
@@ -428,6 +431,7 @@ void assist(){
 }
 
 void loop() {
+   digitalWrite(13, 0);
    if (meraj() < 15)
    {
       dopredu();
