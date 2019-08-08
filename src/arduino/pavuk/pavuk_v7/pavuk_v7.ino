@@ -471,6 +471,7 @@ void loop() {
         lavo();
       }
       if (inp == 't'){
+        load_from_EEPROM(1);
         play_sequence(1);
       }
       if (inp == '9'){
@@ -500,9 +501,9 @@ void loop() {
     int pitch = 0;
     int roll = 0;
     // AK MATE MPU, tak odkomentujte:
-    // Vector normAccel = mpu.readNormalizeAccel();
-    // pitch = -(atan2(normAccel.XAxis, sqrt(normAccel.YAxis*normAccel.YAxis + normAccel.ZAxis*normAccel.ZAxis))*180.0)/M_PI;
-    // roll = (atan2(normAccel.YAxis, normAccel.ZAxis)*180.0)/M_PI;
+    //Vector normAccel = mpu.readNormalizeAccel();
+    //pitch = -(atan2(normAccel.XAxis, sqrt(normAccel.YAxis*normAccel.YAxis + normAccel.ZAxis*normAccel.ZAxis))*180.0)/M_PI;
+    //roll = (atan2(normAccel.YAxis, normAccel.ZAxis)*180.0)/M_PI;
 
     if (abs(roll) > 172) 
     {
@@ -693,7 +694,8 @@ void play_sequence(uint8_t repete)
   {
     for (int i = 0; i < seq_length; i++)
     {
-      if (Serial.available()) { Serial.read(); repete = 0; break; }
+      if (Serial.available() || serial_available())
+      { Serial.read(); repete = 0; break; }
       dump_row(i);
       if ((delaj[i] == 0) || (i == 0))
         for (int j = 0; j < 8; j++)
@@ -708,6 +710,7 @@ void play_sequence(uint8_t repete)
       } 
     }
     if (Serial.available()) { Serial.read(); break; }
+    if (serial_available()) { serial_read(); break; }
   } while (repete);
   for (int i = 0; i < 8; i++)
     legv[i] = seq[seq_length-1][i];
@@ -907,7 +910,7 @@ void load_from_EEPROM(uint8_t prognum)
 {
   if (prognum == 0)
   {
-    int8_t prognum = ask_for_slot_num();
+    prognum = ask_for_slot_num();
     if (prognum < 0) return;
     Serial.print(F("Read sequence from EEPROM [y/n]: "));
     while (!Serial.available());
@@ -921,7 +924,7 @@ void load_from_EEPROM(uint8_t prognum)
     Serial.println("nothing in EEPROM");
     return;
   }
-
+  
   seq_length = EEPROM.read(prognum * MAX_PROG_SIZE + 1);
   for (int i = 0; i < seq_length; i++)
   {
