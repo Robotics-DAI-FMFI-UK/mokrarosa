@@ -767,6 +767,11 @@ void loop() {
       if (ultrazvuk) Serial.println(F("Ultrazvuk ON"));
       else Serial.println(F("Ultrazvuk OFF"));
     }
+    else if (c == ',') zahraj_melodiu(1);
+    else if (c == '.') zahraj_melodiu(2);
+    else if (c == ';') zahraj_melodiu(3);
+    else if (c == '[') zahraj_melodiu(4);
+    else if (c == ']') zahraj_melodiu(5);
     else if (c == 27)
     {
       zastav_melodiu();
@@ -804,6 +809,7 @@ void print_usage()
   Serial.println(F("Battery level (*100 V): B"));
   Serial.println(F("Position 90: 9"));
   Serial.println(F("Ultrazvuk ON/OFF: 'K'"));
+  Serial.println(F("Play melody: . , ; [ ]"));
   Serial.println(F("Stop melody: ESC"));
   Serial.println(F("Print help: H"));
   Serial.println(F("Undo to last saved position: U"));
@@ -879,6 +885,7 @@ void play_sequence(uint8_t repete)
   } while (repete);
   for (int i = 0; i < 8; i++)
     legv[i] = seq[seq_length-1][i];
+  zastav_melodiu();
 }
 
 void load_sequence()
