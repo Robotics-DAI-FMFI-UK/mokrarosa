@@ -198,6 +198,8 @@ void dole_nohami()
       legs[i].write(legv[i]);
 }
 
+// pre chodzu dole nohami
+
 void posunDL(){
   legs[LZ2].write(90);
   delay(cas);
@@ -266,6 +268,78 @@ void posunZR(){
   kalibraceZ();
 }
 
+// pre chodzu hore nohami
+
+void posunDL_HN(){
+  legs[LZ2].write(90);
+  delay(cas);
+  legs[LZ1].write(95);
+  delay(cas);
+  legs[LZ2].write(175);
+  delay(cas);
+
+  legs[LP2].write(90);
+  delay(cas);
+  legs[LP1].write(175);
+  delay(cas);
+  legs[LP2].write(5);
+  delay(cas);
+  kalibraceD();
+}
+
+void posunDR_HN(){
+  legs[PZ2].write(90);
+  delay(cas);
+  legs[PZ1].write(105);
+  delay(cas);
+  legs[PZ2].write(5);
+  delay(cas);
+
+  legs[PP2].write(90);
+  delay(cas);
+  legs[PP1].write(175);
+  delay(cas);
+  legs[PP2].write(175);
+  delay(cas);
+  kalibraceD();
+}
+
+void posunZL_HN(){
+  legs[LP2].write(90);
+  delay(cas);
+  legs[LP1].write(70);
+  delay(cas);
+  legs[LP2].write(5);
+  delay(cas);
+  
+  legs[LZ2].write(90);
+  delay(cas);
+  legs[LZ1].write(175);
+  delay(cas);
+  legs[LZ2].write(175);
+  delay(cas);
+  kalibraceZ();
+}
+
+void posunZR_HN(){
+  legs[PP2].write(90);
+  delay(cas);
+  legs[PP1].write(100);
+  delay(cas);
+  legs[PP2].write(175);
+  delay(cas);
+  
+  legs[PZ2].write(90);
+  delay(cas);
+  legs[PZ1].write(5);
+  delay(cas);
+  legs[PZ2].write(5);
+  delay(cas);
+  kalibraceZ();
+}
+
+// ---
+
 void Xattack(){
   legs[PP1].write(175);
   legs[LP1].write(5);
@@ -284,7 +358,7 @@ void Xattack(){
 }
 
 // lahnut
-void cube(){
+void cube() {
     legs[LZ2].write(90);
     legs[LP2].write(90);
     legs[PZ2].write(90);
@@ -314,40 +388,66 @@ void safe(){
 }
 
 void kalibrace(){
-  legs[LZ2].write(5);
-  legs[LZ1].write(135);
-  legs[LP2].write(175);
-  legs[LP1].write(45);
-  legs[PZ2].write(175);
-  legs[PZ1].write(45);
-  legs[PP2].write(5);
-  legs[PP1].write(135);
+  static uint8_t angles[] = {45, 135, 135, 45, 175, 5, 5, 175 };
+  for (int i = 0; i < 8; i++)
+	legv[i] = angles[i];
+
+  for (int i = 0; i < 8; i++)
+	  legs[i].write(legv[i]);
 }
 
 void kalibraceD(){
-  legs[LZ1].write(150);
-  legs[LP1].write(50);
-  legs[PZ1].write(30);
-  legs[PP1].write(130);
+  static uint8_t angles[] = {50, 150, 130, 30};
+  for (int i = 0; i < 4; i++)
+	legv[i] = angles[i];
+
+  for (int i = 0; i < 4; i++)
+	  legs[i].write(legv[i]);
 }
 
 void kalibraceZ(){
-  legs[LZ1].write(130);
-  legs[LP1].write(30);
-  legs[PZ1].write(50);
-  legs[PP1].write(130);
+  static uint8_t angles[] = {30, 130, 130, 50};
+  for (int i = 0; i < 4; i++)
+	legv[i] = angles[i];
+
+  for (int i = 0; i < 4; i++)
+	  legs[i].write(legv[i]);
 }
 
+// chodza
+
 void dopredu(){
-  kalibraceD();
-  delay(cas);
-  posunDL();
-  delay(cas);
-  posunDR();
-  delay(cas);
+  if (je_hore_nohami) dopredu_HN();
+  else dopredu_DN();
 }
 
 void dozadu(){
+if (je_hore_nohami) dozadu_HN();
+  else dozadu_DN();
+}
+
+void pravo(){
+if (je_hore_nohami) pravo_HN();
+  else pravo_DN();
+}
+
+void lavo(){
+if (je_hore_nohami) lavo_HN();
+  else lavo_DN();
+}
+
+// chodza dole nohami
+
+void dopredu_DN(){
+  kalibraceD();
+  delay(cas);
+  posunDL();
+  delay(cas);
+  posunDR();
+  delay(cas);
+}
+
+void dozadu_DN(){
   kalibraceZ();
   delay(cas);
   posunZL();
@@ -356,7 +456,7 @@ void dozadu(){
   delay(cas);
 }
 
-void pravo(){
+void pravo_DN(){
   kalibraceZ();
   delay(cas);
   posunZR();
@@ -365,13 +465,51 @@ void pravo(){
   posunDL();
 }
 
-void lavo(){
+void lavo_DN(){
   kalibraceZ();
   delay(cas);
   posunZL();
   kalibraceD();
   delay(cas);
   posunDR();
+}
+
+// chodza hore nohami
+
+void dopredu_HN(){
+  kalibraceD();
+  delay(cas);
+  posunDL_HN();
+  delay(cas);
+  posunDR_HN();
+  delay(cas);
+}
+
+void dozadu_HN(){
+  kalibraceZ();
+  delay(cas);
+  posunZL_HN();
+  delay(cas);
+  posunZR_HN();
+  delay(cas);
+}
+
+void pravo_HN(){
+  kalibraceZ();
+  delay(cas);
+  posunZR_HN();
+  kalibraceD();
+  delay(cas);
+  posunDL_HN();
+}
+
+void lavo_HN(){
+  kalibraceZ();
+  delay(cas);
+  posunZL_HN();
+  kalibraceD();
+  delay(cas);
+  posunDR_HN();
 }
 
 void antispam(){
