@@ -3,6 +3,9 @@
 #include <Wire.h>
 #include <MPU6050.h>
 
+// zakomentujte nasledujuci riadok ak nemate MPU6050 gyroskop
+#define HAVE_GYRO
+
 // pin connections:
 // servos:
 //   left front upper:  D9
@@ -73,7 +76,10 @@ uint8_t je_hore_nohami = 0;
 uint8_t initial[] = {45,135,135,45,175,5,5,175};
 uint8_t naopak[] = {45,135,135,45,5,175,175,5};
 
+#ifdef HAVE_GYRO
 MPU6050 mpu;
+#endif
+
 int cas = 70;
 int inp = 0;
 int a = 0;
@@ -104,11 +110,22 @@ static uint16_t half_of_one_bit_duration;
 static uint8_t ignore_batteries = 0;
 
 void setup() {
+  legs[LZ2].attach(11);
+  legs[LZ1].attach(10);
+  legs[LP2].attach(8);
+  legs[LP1].attach(9);
+  legs[PZ2].attach(3);
+  legs[PZ1].attach(5);
+  legs[PP2].attach(6);
+  legs[PP1].attach(7);
+  reset_pozicie();
+
   pinMode(WARN_LED, OUTPUT);
   digitalWrite(WARN_LED, LOW);
   pinMode(TRIG, OUTPUT);
   pinMode(ECHO, INPUT);
   Serial.begin(9600);
+  init_tone2();
 
   while (Serial.available()) Serial.read();
   Serial.println(F("Hi! Press a key for USB-powered run."));
@@ -123,16 +140,9 @@ void setup() {
 
   init_serial(9600);
   
-  legs[LZ2].attach(11);
-  legs[LZ1].attach(10);
-  legs[LP2].attach(8);
-  legs[LP1].attach(9);
-  legs[PZ2].attach(3);
-  legs[PZ1].attach(5);
-  legs[PP2].attach(6);
-  legs[PP1].attach(7);
-  // AK MATE MPU, tak odkomentujte:
-  //mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G);
+#ifdef HAVE_GYRO
+  mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G);
+#endif
 
   step_size = 1;
 
@@ -146,7 +156,6 @@ void setup() {
   else
   {
     seq_length = 0;
-    reset_pozicie();
     print_usage();
   }
 }
@@ -389,28 +398,28 @@ void safe(){
 void kalibrace(){
   static uint8_t angles[] = {45, 135, 135, 45, 175, 5, 5, 175 };
   for (int i = 0; i < 8; i++)
-	legv[i] = angles[i];
+  legv[i] = angles[i];
 
   for (int i = 0; i < 8; i++)
-	  legs[i].write(legv[i]);
+    legs[i].write(legv[i]);
 }
 
 void kalibraceD(){
   static uint8_t angles[] = {50, 150, 130, 30};
   for (int i = 0; i < 4; i++)
-	legv[i] = angles[i];
+  legv[i] = angles[i];
 
   for (int i = 0; i < 4; i++)
-	  legs[i].write(legv[i]);
+    legs[i].write(legv[i]);
 }
 
 void kalibraceZ(){
   static uint8_t angles[] = {30, 130, 130, 50};
   for (int i = 0; i < 4; i++)
-	legv[i] = angles[i];
+  legv[i] = angles[i];
 
   for (int i = 0; i < 4; i++)
-	  legs[i].write(legv[i]);
+    legs[i].write(legv[i]);
 }
 
 // chodza
@@ -577,7 +586,12 @@ void assist(){
 }
 
 void loop() {
-  
+
+  if ((meraj() < 15) && ultrazvuk)
+  {
+    dozadu();
+  }
+
   if (serial_available()){
       antispam();
       inp = buffet[0];
@@ -637,10 +651,10 @@ void loop() {
     }
     int pitch = 0;
     int roll = 0;
-    // AK MATE MPU, tak odkomentujte:
-    //Vector normAccel = mpu.readNormalizeAccel();
-    //pitch = -(atan2(normAccel.XAxis, sqrt(normAccel.YAxis*normAccel.YAxis + normAccel.ZAxis*normAccel.ZAxis))*180.0)/M_PI;
-    //roll = (atan2(normAccel.YAxis, normAccel.ZAxis)*180.0)/M_PI;
+#ifdef HAVE_GYRO
+    Vector normAccel = mpu.readNormalizeAccel();
+    pitch = -(atan2(normAccel.XAxis, sqrt(normAccel.YAxis*normAccel.YAxis + normAccel.ZAxis*normAccel.ZAxis))*180.0)/M_PI;
+    roll = (atan2(normAccel.YAxis, normAccel.ZAxis)*180.0)/M_PI;
 
     if (abs(roll) > 172) 
     {
@@ -659,7 +673,7 @@ void loop() {
     Serial.println(pitch);
     delay(100);
     */
-	
+  
     if (e == 1){
       if (roll > 34 and roll < 56 or roll > -56 and roll < -34){
         cube();
@@ -676,6 +690,7 @@ void loop() {
         delay(Time);
         }
     }
+#endif
 
   skontroluj_baterku();
   if (Serial.available())
@@ -746,6 +761,16 @@ void loop() {
       reset_pozicie();
     else if (c == '9')
       pozicia_90();
+    else if (c == 'K')
+    {
+      ultrazvuk = 1 - ultrazvuk;
+      if (ultrazvuk) Serial.println(F("Ultrazvuk ON"));
+      else Serial.println(F("Ultrazvuk OFF"));
+    }
+    else if (c == 27)
+    {
+      zastav_melodiu();
+    }
     else if (c == 'H')
       print_usage();
     else if (c == 'B')
@@ -778,6 +803,8 @@ void print_usage()
   Serial.println(F("Initial position: *"));
   Serial.println(F("Battery level (*100 V): B"));
   Serial.println(F("Position 90: 9"));
+  Serial.println(F("Ultrazvuk ON/OFF: 'K'"));
+  Serial.println(F("Stop melody: ESC"));
   Serial.println(F("Print help: H"));
   Serial.println(F("Undo to last saved position: U"));
   Serial.println(F("(to insert a break, repeat the same position again with delay)"));
@@ -1431,7 +1458,7 @@ int meraj()
 //-------------------------------- nasleduje prehravanie melodie a hranie cez timer2 v pozadi
 #define SIRENE_PORT  PORTB
 #define SIRENE_DDR   DDRB
-#define SIRENE_PIN   4
+#define SIRENE_PIN   5
 
 #define FIS3 2960
 #define G3 3136
@@ -1711,4 +1738,5 @@ void zastav_melodiu()
 {
   notes_remaining = 0;
 }
+
 
