@@ -6,6 +6,9 @@
 // zakomentujte nasledujuci riadok ak nemate MPU6050 gyroskop
 #define HAVE_GYRO
 
+// zakomentujte nasledujuci riadok ak nemate HC-SR04 ultrazvuk
+#define HAVE_ULTRASONIC
+
 // pin connections:
 // servos:
 //   left front upper:  D9
@@ -587,10 +590,12 @@ void assist(){
 
 void loop() {
 
+#ifdef HAVE_ULTRASONIC
   if ((meraj() < 15) && ultrazvuk)
   {
     dozadu();
   }
+#endif
 
   if (serial_available()){
       antispam();
@@ -772,14 +777,10 @@ void loop() {
     else if (c == ';') zahraj_melodiu(3);
     else if (c == '[') zahraj_melodiu(4);
     else if (c == ']') zahraj_melodiu(5);
-    else if (c == 27)
-    {
-      zastav_melodiu();
-    }
-    else if (c == 'H')
-      print_usage();
-    else if (c == 'B')
-      Serial.println(meraj_baterku());
+    else if (c == '\'') zahraj_melodiu(6);
+    else if (c == 27) zastav_melodiu();
+    else if (c == 'H') print_usage();
+    else if (c == 'B') Serial.println(meraj_baterku());
   }  
 }
 
@@ -809,7 +810,7 @@ void print_usage()
   Serial.println(F("Battery level (*100 V): B"));
   Serial.println(F("Position 90: 9"));
   Serial.println(F("Ultrazvuk ON/OFF: 'K'"));
-  Serial.println(F("Play melody: . , ; [ ]"));
+  Serial.println(F("Play melody: . , ; ' [ ]"));
   Serial.println(F("Stop melody: ESC"));
   Serial.println(F("Print help: H"));
   Serial.println(F("Undo to last saved position: U"));
@@ -860,7 +861,7 @@ void dump_sequence()
 
 void play_sequence(uint8_t repete)
 {
-  if (repete) zahraj_melodiu(4);
+  if (repete) zahraj_melodiu(6);
   do 
   {
     for (int i = 0; i < seq_length; i++)
@@ -1473,7 +1474,7 @@ int meraj()
 float octave_4[] = { 2093.00, 2217.46, 2349.32, 2489.02, 2637.02, 2793.83, 2959.96, 3135.96, 3322.44, 3520.00, 3729.31, 3951.07 };
 
 //popcorn
-uint16_t dlzka_melodia[] = {0, 386, 26, 281, 217, 36};
+uint16_t dlzka_melodia[] = {0, 386, 26, 281, 217, 36, 468};
 const uint8_t melodia1[] PROGMEM = { 252, 50, 149,  49,
                                      28, 31, 35, 40, 49, 99, 38, 49, 99, 40, 49, 99, 35, 49, 99, 31, 49, 99, 35, 49, 99, 28, 49, 99, 49,
                                      28, 31, 35, 40, 49, 99, 38, 49, 99, 40, 49, 99, 35, 49, 99, 31, 49, 99, 35, 49, 99, 28, 49, 99, 149,
@@ -1528,6 +1529,37 @@ const uint8_t melodia5[] PROGMEM = { 252, 200, 26, 26, 76, 26, 253, 78, 73, 76, 
                                      83, 83, 81, 131, 35, 253, 85, 86, 35, 35, 85, 83, 99, 35, 33, 83, 81, 181 
 };
 
+//Turkish march by Mozart
+const uint8_t melodia6[] PROGMEM = { 80, 78, 77, 78, 131, 149, 83, 81, 80, 81, 135, 149, 86, 85, 84, 85, 92, 90, 
+89, 90, 92, 90, 89, 90, 193, 140, 143, 142, 140, 138, 140, 142, 140, 138, 
+140, 142, 140, 138, 137, 185, 80, 78, 77, 78, 131, 149, 83, 81, 80, 81, 
+135, 149, 86, 85, 84, 85, 92, 90, 89, 90, 92, 90, 89, 90, 193, 140, 143, 
+142, 140, 138, 140, 142, 140, 138, 140, 142, 140, 138, 137, 185, 135, 136, 
+138, 138, 90, 88, 86, 85, 183, 135, 136, 138, 138, 90, 88, 86, 85, 183, 
+131, 133, 135, 135, 86, 85, 83, 81, 180, 131, 133, 135, 135, 86, 85, 83, 
+81, 180, 80, 78, 77, 78, 131, 149, 83, 81, 80, 81, 135, 149, 86, 85, 84, 
+85, 92, 90, 89, 90, 92, 90, 89, 90, 193, 140, 142, 143, 142, 140, 139, 140, 
+135, 136, 133, 181, 130, 78, 80, 178, 128, 130, 182, 128, 130, 132, 130, 
+128, 127, 125, 127, 128, 130, 127, 123, 128, 130, 182, 128, 130, 132, 130, 
+128, 127, 125, 130, 127, 123, 178, 94, 95, 94, 92, 140, 139, 87, 90, 89, 
+87, 136, 139, 82, 84, 85, 82, 137, 139, 90, 89, 90, 92, 144, 93, 94, 95, 
+94, 92, 140, 139, 87, 90, 89, 87, 135, 139, 82, 84, 85, 82, 134, 137, 81, 
+82, 84, 81, 182, 94, 95, 94, 92, 140, 139, 87, 90, 89, 87, 136, 139, 82, 
+84, 85, 82, 137, 139, 90, 89, 90, 92, 144, 93, 94, 95, 94, 92, 140, 139, 
+87, 90, 89, 87, 135, 139, 82, 84, 85, 82, 134, 137, 81, 82, 84, 81, 182, 
+128, 130, 182, 128, 130, 132, 130, 128, 127, 125, 127, 128, 130, 127, 123, 
+128, 130, 182, 128, 130, 132, 130, 128, 127, 125, 130, 127, 123, 178, 80, 
+78, 77, 78, 131, 149, 83, 81, 80, 81, 135, 149, 86, 85, 84, 85, 92, 90, 89, 
+90, 92, 90, 89, 90, 193, 140, 143, 142, 140, 138, 140, 142, 140, 138, 140, 
+142, 140, 138, 137, 185, 80, 78, 77, 78, 131, 149, 83, 81, 80, 81, 135, 
+149, 86, 85, 84, 85, 92, 90, 89, 90, 92, 90, 89, 90, 193, 140, 143, 142, 
+140, 138, 140, 142, 140, 138, 140, 142, 140, 138, 137, 185, 135, 136, 138, 
+138, 90, 88, 86, 85, 183, 135, 136, 138, 138, 90, 88, 86, 85, 183, 131, 
+133, 135, 135, 86, 85, 83, 81, 180, 131, 133, 135, 135, 86, 85, 83, 81, 
+180, 80, 78, 77, 78, 131, 149, 83, 81, 80, 81, 135, 149, 86, 85, 84, 85, 
+92, 90, 89, 90, 92, 90, 89, 90, 193, 140, 142, 143, 142, 140, 139, 140, 
+135, 136, 133, 181, 130, 78, 80, 178, 131, 135, 190, 199 };
+
 volatile int16_t music_speed = 800 / 16;
 volatile const uint8_t *current_note ;
 volatile uint16_t notes_remaining;
@@ -1545,6 +1577,7 @@ void zahraj_melodiu(uint8_t cislo)
   else if (cislo == 3) current_note = melodia3;
   else if (cislo == 4) current_note = melodia4;
   else if (cislo == 5) current_note = melodia5;
+  else if (cislo == 6) current_note = melodia6;
   notes_remaining = dlzka_melodia[cislo];
 
   next_note();
@@ -1745,5 +1778,3 @@ void zastav_melodiu()
 {
   notes_remaining = 0;
 }
-
-
