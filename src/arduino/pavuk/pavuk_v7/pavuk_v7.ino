@@ -680,15 +680,15 @@ void loop() {
     */
   
     if (e == 1){
-      if (roll > 34 and roll < 56 or roll > -56 and roll < -34){
+      if (((roll > 34) && (roll < 56)) || ((roll > -56) && (roll < -34))){
         cube();
         }
-      if (pitch > 34 and pitch < 56 or pitch > -55 and pitch < -34){
+      if (((pitch > 34) && (pitch < 56)) || ((pitch > -55) && (pitch < -34))){
         cube();
         }
       }
     if (g == 1){
-      if (roll > 169 or roll < -169){
+      if ((roll > 169) || (roll < -169)){
         delay(Time);
         safe();
         kalibrace();
@@ -880,6 +880,7 @@ void play_sequence(uint8_t repete)
         }
         delay(delaj[i]);
       } 
+	  skontroluj_baterku();
     }
     if (Serial.available()) { Serial.read(); break; }
     if (serial_available()) { serial_read(); break; }
@@ -1079,7 +1080,7 @@ void toggle_autostart()
   }
 }
 
-void load_from_EEPROM(uint8_t prognum)
+void load_from_EEPROM(int8_t prognum)
 {
   if (prognum == 0)
   {
@@ -1128,15 +1129,17 @@ void skontroluj_baterku()
   if (tm - posledne_meranie > 500)
   {
     posledne_meranie = tm;
-    analogReference(INTERNAL); 
-    float volt = analogRead(A3); 
-    analogReference(DEFAULT);
     if (meraj_baterku() < 620)  
     {
       pocet_merani++;
-      if (pocet_merani < 10) return;
+      if (pocet_merani < 5) return;
       delay(50);
       Serial.println(F("!!!!!!!!!!!!!!!! Nabit baterky !!!!!!!!!!!!!!!!!!!!"));
+	  for (int i = 0; i < 8; i++)
+		  legs[i].detach();
+	  for (int i = 2; i < 20; i++)
+		  pinMode(i, INPUT);
+	  pinMode(WARN_LED, OUTPUT);
       while(1) SOS();
     }
     else pocet_merani = 0;
@@ -1452,14 +1455,14 @@ int meraj()
   digitalWrite(TRIG, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG, LOW);
-  long pocitadlo = micros() + 10000;
+  unsigned long pocitadlo = micros() + 10000;
   while ((digitalRead(ECHO) == 0) & (micros() < pocitadlo)) { }
   if (digitalRead(ECHO) == 0) return 255;
-  long cas1 = micros();
+  unsigned long cas1 = micros();
   pocitadlo = cas1 + 10000; 
   while ((digitalRead(ECHO) == 1) && (micros() < pocitadlo)) { }
   if (digitalRead(ECHO) == 1) return 255;
-  long cas2 = micros();
+  unsigned long cas2 = micros();
   return (cas2 - cas1) / 58;
 }
 
