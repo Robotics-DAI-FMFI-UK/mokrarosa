@@ -661,7 +661,7 @@ void loop() {
     pitch = -(atan2(normAccel.XAxis, sqrt(normAccel.YAxis*normAccel.YAxis + normAccel.ZAxis*normAccel.ZAxis))*180.0)/M_PI;
     roll = (atan2(normAccel.YAxis, normAccel.ZAxis)*180.0)/M_PI;
 
-    if (abs(roll) > 172) 
+    if (!je_hore_nohami && (abs(roll) > 172))
     {
       hore_nohami();
       je_hore_nohami = 1;
