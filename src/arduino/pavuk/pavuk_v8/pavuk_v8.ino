@@ -89,7 +89,6 @@ MPU6050 mpu;
 int cas = 70;
 int inp = 0;
 int8_t lezi = 0;
-int battle_mode = 0;
 int auto_cube = 0;
 int auto_safe = 0;
 int safe_delay = 500;
@@ -566,12 +565,52 @@ void antispam(){
   }
 }
 
-void battle(){
-  if (inp == '5'){
+void print_bt_usage()
+{
+  serial_println_flash(PSTR("steps:"));
+  serial_println_flash(PSTR(" 1: forward"));
+  serial_println_flash(PSTR(" 2: backward"));
+  serial_println_flash(PSTR(" 3: right"));
+  serial_println_flash(PSTR(" 4: left"));
+  serial_println_flash(PSTR("switches:"));
+  delay(150);
+  serial_println_flash(PSTR(" 9: init position"));
+  serial_println_flash(PSTR(" q: mp3 volume on/off"));
+  serial_println_flash(PSTR(" u: ultrasonic on/off"));
+  serial_println_flash(PSTR(" h: print this help"));
+  delay(150); 
+  serial_println_flash(PSTR("run eeprom prog: t b g"));
+  serial_println_flash(PSTR(" 5: lift oponent"));
+  serial_println_flash(PSTR(" 6: lay down (cube)"));
+  serial_println_flash(PSTR(" 7: roll over (safe)"));
+  delay(150);
+  serial_println_flash(PSTR(" 0: switch auto cube"));
+  serial_println_flash(PSTR(" 8: switch auto safe"));  
+  serial_println_flash(PSTR("mp3 music: m j n"));
+  serial_println_flash(PSTR("simple songs: . , ; ' [ ]"));
+}
+
+void control_over_bt()
+{
+  antispam();
+  inp = buffet[0];
+  if (inp == '1'){
+    dopredu();
+  }
+  else if (inp == '2'){
+    dozadu();
+  }
+  else if (inp == '3'){
+    pravo();
+  }
+  else if (inp == '4'){
+    lavo();
+  }
+  else if (inp == '5'){
     Xattack();
     kalibrace();
   }
-  if (inp == '6'){
+  else if (inp == '6'){
     if (lezi == 1){
       kalibrace();
       serial_println_flash(PSTR("vztyk"));
@@ -583,82 +622,21 @@ void battle(){
       lezi = 1;
     }
   }
-  if (inp == '7'){
+  else if (inp == '7'){
     safe();
     kalibrace();
-  }
-}
-
-void assist(){
-  if (inp == '6') 
+  }  
+  else if (inp == '0') 
   {
     auto_cube ^= 1;
     serial_print_flash(PSTR("auto cube: "));
     serial_println_num(auto_cube);
   }
-  if (inp == '7') 
+  else if (inp == '8') 
   {
     auto_safe ^= 1;
     serial_print_flash(PSTR("auto safe: "));
     serial_println_num(auto_safe);
-  }
-}
-
-void print_bt_usage()
-{
-  serial_println_flash(PSTR("steps:"));
-  serial_println_flash(PSTR(" 1: forward"));
-  serial_println_flash(PSTR(" 2: backward"));
-  serial_println_flash(PSTR(" 3: right"));
-  serial_println_flash(PSTR(" 4: left"));
-  serial_println_flash(PSTR("switches:"));
-  delay(150);
-  serial_println_flash(PSTR(" 9: init position"));
-  serial_println_flash(PSTR(" 0: switch mode (battle/normal)"));
-  serial_println_flash(PSTR(" q: mp3 volume on/off"));
-  serial_println_flash(PSTR(" u: ultrasonic on/off"));
-  serial_println_flash(PSTR(" h: print this help"));
-  delay(150); 
-  serial_println_flash(PSTR("run eeprom prog: t b g"));
-  serial_println_flash(PSTR("in battle mode:"));
-  serial_println_flash(PSTR(" 5: lift oponent"));
-  serial_println_flash(PSTR(" 6: lay down (cube)"));
-  serial_println_flash(PSTR(" 7: roll over (safe)"));
-  serial_println_flash(PSTR("in normal mode:"));
-  delay(150);
-  serial_println_flash(PSTR(" 6: switch auto cube"));
-  serial_println_flash(PSTR(" 7: switch auto safe"));  
-  serial_println_flash(PSTR("mp3 music: m j n"));
-  serial_println_flash(PSTR("simple songs: . , ; ' [ ]"));
-}
-
-void control_over_bt()
-{
-  antispam();
-  inp = buffet[0];
-  if (inp == '0'){
-    if (battle_mode == 1){
-      serial_println_flash(PSTR("normal"));
-      battle_mode = 0;
-      digitalWrite(12, LOW);
-    }
-    else {
-      serial_println_flash(PSTR("battle"));
-      battle_mode = 1;
-      digitalWrite(12, HIGH);
-    }
-  }
-  else if (inp == '1'){
-    dopredu();
-  }
-  else if (inp == '2'){
-    dozadu();
-  }
-  else if (inp == '3'){
-    pravo();
-  }
-  else if (inp == '4'){
-    lavo();
   }
   else if (inp == 't'){
     load_from_EEPROM(1);
@@ -701,13 +679,6 @@ void control_over_bt()
     print_bt_usage();
   }
   else try_melodies(inp);
-  
-  if (battle_mode == 1){
-    battle();
-  }
-  else if (battle_mode == 0){
-    assist();
-  }
   delay(300);  
 }
 
