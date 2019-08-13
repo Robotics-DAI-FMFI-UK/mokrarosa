@@ -612,17 +612,20 @@ void print_bt_usage()
   serial_println_flash(PSTR(" 3: right"));
   serial_println_flash(PSTR(" 4: left"));
   serial_println_flash(PSTR("switches:"));
+  delay(150);
   serial_println_flash(PSTR(" 9: init position"));
   serial_println_flash(PSTR(" 0: switch mode (battle/normal)"));
   serial_println_flash(PSTR(" q: mp3 volume on/off"));
   serial_println_flash(PSTR(" u: ultrasonic on/off"));
   serial_println_flash(PSTR(" h: print this help"));
+  delay(150); 
   serial_println_flash(PSTR("run eeprom prog: t b g"));
   serial_println_flash(PSTR("in battle mode:"));
   serial_println_flash(PSTR(" 5: lift oponent"));
   serial_println_flash(PSTR(" 6: lay down (cube)"));
   serial_println_flash(PSTR(" 7: roll over (safe)"));
   serial_println_flash(PSTR("in normal mode:"));
+  delay(150);
   serial_println_flash(PSTR(" 6: switch auto cube"));
   serial_println_flash(PSTR(" 7: switch auto safe"));  
   serial_println_flash(PSTR("mp3 music: m j n"));
@@ -678,7 +681,11 @@ void control_over_bt()
     if (quiet)
        mp3_set_volume(20);
     else
+    {
        mp3_set_volume(0);
+       zastav_melodiu();
+    }
+       
     quiet = 1 - quiet;
     serial_print_flash(PSTR("music:"));
     serial_println_num(!quiet);
@@ -693,6 +700,7 @@ void control_over_bt()
   {
     print_bt_usage();
   }
+  else try_melodies(inp);
   
   if (battle_mode == 1){
     battle();
