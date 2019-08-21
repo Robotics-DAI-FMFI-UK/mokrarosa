@@ -592,6 +592,7 @@ void print_bt_usage()
 
 void control_over_bt()
 {
+  pip();
   antispam();
   inp = buffet[0];
   if (inp == '1'){
@@ -1207,12 +1208,13 @@ void skontroluj_baterku()
       pocet_merani++;
       if (pocet_merani < 5) return;
       delay(50);
-      Serial.println(F("!!!!!!!!!!!!!!!! Nabit baterky !!!!!!!!!!!!!!!!!!!!"));
-	  for (int i = 0; i < 8; i++)
-		  legs[i].detach();
-	  for (int i = 2; i < 20; i++)
-		  pinMode(i, INPUT);
-	  pinMode(WARN_LED, OUTPUT);
+      Serial.println(F("!!!!!!!!!!!!!!!! Nabit baterky !!!!!!!!!!!!!!!!!!!!")); 
+      mp3_set_volume(0);
+      for (int i = 0; i < 8; i++)
+        legs[i].detach();
+      for (int i = 2; i < 20; i++)
+        pinMode(i, INPUT);
+      pinMode(WARN_LED, OUTPUT);
       while(1) SOS();
     }
     else pocet_merani = 0;
@@ -1848,6 +1850,11 @@ void tone2(uint16_t freq, uint16_t duration)
   {
     TCCR2B = 0;
   }
+}
+
+void pip()
+{
+  if (notes_remaining == 0) tone2(698, 30);
 }
 
 void zastav_melodiu()
