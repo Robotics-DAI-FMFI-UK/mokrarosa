@@ -685,9 +685,11 @@ void control_over_bt()
 
 void refresh_gyro()
 {
+#ifdef HAVE_GYRO
   Vector normAccel = mpu.readNormalizeAccel();
   pitch = -(atan2(normAccel.XAxis, sqrt(normAccel.YAxis*normAccel.YAxis + normAccel.ZAxis*normAccel.ZAxis))*180.0)/M_PI;
   roll = (atan2(normAccel.YAxis, normAccel.ZAxis)*180.0)/M_PI;  
+#endif
 }
 
 void react_to_gyro()
