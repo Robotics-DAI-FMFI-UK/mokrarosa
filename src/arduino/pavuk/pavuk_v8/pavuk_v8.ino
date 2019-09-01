@@ -579,7 +579,7 @@ void print_bt_usage()
   serial_println_flash(PSTR(" u: ultrasonic on/off"));
   serial_println_flash(PSTR(" h: print this help"));
   delay(150); 
-  serial_println_flash(PSTR("run eeprom prog: t b g"));
+  serial_println_flash(PSTR("run eeprom prog: t g b"));
   serial_println_flash(PSTR(" 5: lift oponent"));
   serial_println_flash(PSTR(" 6: lay down (cube)"));
   serial_println_flash(PSTR(" 7: roll over (safe)"));
