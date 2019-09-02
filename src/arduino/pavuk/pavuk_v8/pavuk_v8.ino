@@ -579,6 +579,7 @@ void print_bt_usage()
   serial_println_flash(PSTR(" u: ultrasonic on/off"));
   serial_println_flash(PSTR(" h: print this help"));
   delay(150); 
+  serial_println_flash(PSTR("run prog: / \\"));
   serial_println_flash(PSTR("run eeprom prog: t g b"));
   serial_println_flash(PSTR(" 5: lift oponent"));
   serial_println_flash(PSTR(" 6: lay down (cube)"));
@@ -639,6 +640,10 @@ void control_over_bt()
     serial_print_flash(PSTR("auto safe: "));
     serial_println_num(auto_safe);
   }
+  else if (inp == '/')
+    play_sequence(0);
+  else if (inp == '\\')
+    play_sequence(1);
   else if (inp == 't'){
     load_from_EEPROM(1);
     play_sequence(1);
