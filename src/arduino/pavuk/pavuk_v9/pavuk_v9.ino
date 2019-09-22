@@ -117,12 +117,14 @@ static uint16_t one_bit_write_duration;
 static uint16_t half_of_one_bit_duration;
 static uint8_t ignore_batteries = 0;
 
-void setup() {
+void setup() 
+{
   usb_active = 0;
   bt_active = 0;
   in_edit_mode = 0;
   debug_mode = 0;
   volume = 20;
+  seq_length = 0;
   
   legs[LZ2].attach(11);
   legs[LZ1].attach(10);
@@ -147,7 +149,7 @@ void setup() {
   if (Serial.available())
   {
     ignore_batteries = 1;
-	usb_active = 1;
+	  usb_active = 1;
     Serial.read();
     Serial.println(F("USB-powered"));
   }
@@ -160,7 +162,6 @@ void setup() {
 #endif
 
   step_size = 1;
-
   sound_greeting();
     
   mp3_play(1);
@@ -168,7 +169,6 @@ void setup() {
   mp3_set_volume(volume);
   
   if (load_autostart()) play_sequence(1);
-  else seq_length = 0;
   serial_println_flash(PSTR("\r\nMokrarosa.\r\nHit H for help."));
 }
 
@@ -211,7 +211,8 @@ void dole_nohami()
 
 // pre chodzu dole nohami
 
-void posunDL(){
+void posunDL()
+{
   legs[LZ2].write(90);
   delay(cas);
   legs[LZ1].write(95);
@@ -228,7 +229,8 @@ void posunDL(){
   kalibraceD();
 }
 
-void posunDR(){
+void posunDR()
+{
   legs[PZ2].write(90);
   delay(cas);
   legs[PZ1].write(105);
@@ -245,7 +247,8 @@ void posunDR(){
   kalibraceD();
 }
 
-void posunZL(){
+void posunZL()
+{
   legs[LP2].write(90);
   delay(cas);
   legs[LP1].write(70);
@@ -262,7 +265,8 @@ void posunZL(){
   kalibraceZ();
 }
 
-void posunZR(){
+void posunZR()
+{
   legs[PP2].write(90);
   delay(cas);
   legs[PP1].write(100);
@@ -281,7 +285,8 @@ void posunZR(){
 
 // pre chodzu hore nohami
 
-void posunDL_HN(){
+void posunDL_HN()
+{
   legs[LZ2].write(90);
   delay(cas);
   legs[LZ1].write(95);
@@ -298,7 +303,8 @@ void posunDL_HN(){
   kalibraceD();
 }
 
-void posunDR_HN(){
+void posunDR_HN()
+{
   legs[PZ2].write(90);
   delay(cas);
   legs[PZ1].write(105);
@@ -315,7 +321,8 @@ void posunDR_HN(){
   kalibraceD();
 }
 
-void posunZL_HN(){
+void posunZL_HN()
+{
   legs[LP2].write(90);
   delay(cas);
   legs[LP1].write(70);
@@ -332,7 +339,8 @@ void posunZL_HN(){
   kalibraceZ();
 }
 
-void posunZR_HN(){
+void posunZR_HN()
+{
   legs[PP2].write(90);
   delay(cas);
   legs[PP1].write(100);
@@ -351,7 +359,8 @@ void posunZR_HN(){
 
 // ---
 
-void Xattack(){
+void Xattack()
+{
   legs[PP1].write(175);
   legs[LP1].write(5);
   legs[PZ1].write(90);
@@ -369,7 +378,8 @@ void Xattack(){
 }
 
 // lahnut
-void cube() {
+void cube() 
+{
   for (int i = 4; i < 8; i++)
     legv[i] = 90;
 
@@ -384,7 +394,8 @@ void safe()
 }
 
 // obratka
-void safe_HN(){
+void safe_HN()
+{
   legs[LP1].write(5);
   legs[PP1].write(175);
   delay(safe_delay);
@@ -405,7 +416,8 @@ void safe_HN(){
   delay(safe_delay);
 }
 
-void safe_DN(){
+void safe_DN()
+{
   legs[LP1].write(5);
   legs[PP1].write(175);
   delay(safe_delay);
@@ -448,7 +460,8 @@ void reset_pozicie()
       legs[i].write(legv[i]);
 }
 
-void kalibraceD(){
+void kalibraceD()
+{
   static uint8_t angles[] = {50, 150, 130, 30};
   for (int i = 0; i < 4; i++)
   legv[i] = angles[i];
@@ -457,7 +470,8 @@ void kalibraceD(){
     legs[i].write(legv[i]);
 }
 
-void kalibraceZ(){
+void kalibraceZ()
+{
   static uint8_t angles[] = {30, 130, 130, 50};
   for (int i = 0; i < 4; i++)
   legv[i] = angles[i];
@@ -468,29 +482,34 @@ void kalibraceZ(){
 
 // chodza
 
-void dopredu(){
+void dopredu()
+{
   if (je_hore_nohami) dopredu_HN();
   else dopredu_DN();
 }
 
-void dozadu(){
-if (je_hore_nohami) dozadu_HN();
+void dozadu()
+{
+  if (je_hore_nohami) dozadu_HN();
   else dozadu_DN();
 }
 
-void pravo(){
-if (je_hore_nohami) pravo_HN();
+void pravo()
+{
+  if (je_hore_nohami) pravo_HN();
   else pravo_DN();
 }
 
-void lavo(){
-if (je_hore_nohami) lavo_HN();
+void lavo()
+{
+  if (je_hore_nohami) lavo_HN();
   else lavo_DN();
 }
 
 // chodza dole nohami
 
-void dopredu_DN(){
+void dopredu_DN()
+{
   kalibraceD();
   delay(cas);
   posunDL();
@@ -499,7 +518,8 @@ void dopredu_DN(){
   delay(cas);
 }
 
-void dozadu_DN(){
+void dozadu_DN()
+{
   kalibraceZ();
   delay(cas);
   posunZL();
@@ -508,7 +528,8 @@ void dozadu_DN(){
   delay(cas);
 }
 
-void pravo_DN(){
+void pravo_DN()
+{
   kalibraceZ();
   delay(cas);
   posunZR();
@@ -517,7 +538,8 @@ void pravo_DN(){
   posunDL();
 }
 
-void lavo_DN(){
+void lavo_DN()
+{
   kalibraceZ();
   delay(cas);
   posunZL();
@@ -528,7 +550,8 @@ void lavo_DN(){
 
 // chodza hore nohami
 
-void dopredu_HN(){
+void dopredu_HN()
+{
   kalibraceD();
   delay(cas);
   posunDL_HN();
@@ -537,7 +560,8 @@ void dopredu_HN(){
   delay(cas);
 }
 
-void dozadu_HN(){
+void dozadu_HN()
+{
   kalibraceZ();
   delay(cas);
   posunZL_HN();
@@ -546,7 +570,8 @@ void dozadu_HN(){
   delay(cas);
 }
 
-void pravo_HN(){
+void pravo_HN()
+{
   kalibraceZ();
   delay(cas);
   posunZR_HN();
@@ -555,7 +580,8 @@ void pravo_HN(){
   posunDL_HN();
 }
 
-void lavo_HN(){
+void lavo_HN()
+{
   kalibraceZ();
   delay(cas);
   posunZL_HN();
@@ -564,7 +590,8 @@ void lavo_HN(){
   posunDR_HN();
 }
 
-char read_latest_char() {
+char read_latest_char() 
+{
   char c = 0;
   while (serial_available() > 0)
     c = serial_read();
@@ -642,8 +669,8 @@ void both_modes(char c)
     lezi = 0;
   }
   else if (c == '9')
-    pozicia_90();     
-  else if (c == 'q')
+    pozicia_90();
+  else if (c == 'M')
   {
     if (quiet) mp3_set_volume(volume);
     else mp3_set_volume(0);   
@@ -704,7 +731,7 @@ void edit_mode(char c)
     if (c == 9)
     {
       debug_mode = 0;
-      serial_println_flash("debug: 0");
+      serial_println_flash(PSTR("debug: 0"));
     }
     else if ((c == ' ') || (c == 27))
     {
@@ -712,10 +739,10 @@ void edit_mode(char c)
       {
         debugged_step++;
         if (debugged_step == seq_length) debugged_step = 0;
-        serial_print_flash("step ");
+        serial_print_flash(PSTR("step "));
         serial_println_num(debugged_step);
       }
-      else serial_println_flash("restored");
+      else serial_println_flash(PSTR("restored"));
       play_step(debugged_step);
       for (int i = 0; i < 8; i++)
         legv[i] = seq[debugged_step][i];
@@ -724,15 +751,20 @@ void edit_mode(char c)
     {
       for (int i = 0; i < 8; i++)
         seq[debugged_step][i] = legv[i];
-      serial_println_flash("replaced");
+      serial_println_flash(PSTR("replaced"));
     }
+  }
+  else if (c == 'C') 
+  {
+    in_edit_mode = 0;
+    serial_println_flash(PSTR("ctrl mode"));
   }
   else if (c == 9)
   {
     debug_mode = 1;
     debugged_step = 0;
     dump_sequence(1);
-    serial_println_flash("debug: 1");
+    serial_println_flash(PSTR("debug: 1"));
     play_step(0);
   }
   else if (c == 13)
@@ -787,21 +819,26 @@ void control_mode(char c)
   else if (c == '7'){
     safe();
     kalibrace();
-  }  
-  else if (c == '0') 
+  }
+  else if (c == '0')
   {
     auto_cube ^= 1;
     serial_print_flash(PSTR("auto cube: "));
     serial_println_num(auto_cube);
   }
-  else if (c == '8') 
+  else if (c == '8')
   {
     auto_safe ^= 1;
     serial_print_flash(PSTR("auto safe: "));
     serial_println_num(auto_safe);
   }
-  
-  delay(300);  
+  else if (c == 'E') 
+  {
+    in_edit_mode = 1;
+    serial_println_flash(PSTR("edit mode"));
+  }
+  else both_modes(c);
+  delay(300);
 }
 
 void control_over_bt()
@@ -845,8 +882,8 @@ void try_melodies(char c)
   }
 }
 
-void loop() {
-
+void loop() 
+{
 #ifdef HAVE_ULTRASONIC
   if ((meraj() < 15) && ultrazvuk)
   {
@@ -929,7 +966,7 @@ void print_usage()
   serial_println_flash(PSTR("Stop melody: ESC"));
   delay(150); 
   serial_println_flash(PSTR("Play/change music: m j n"));
-  serial_println_flash(PSTR("Music volume on/off: q"));
+  serial_println_flash(PSTR("Music volume on/off: M"));
   serial_println_flash(PSTR("Change music volume: < >"));
   serial_println_flash(PSTR("Print help: h"));
 }
