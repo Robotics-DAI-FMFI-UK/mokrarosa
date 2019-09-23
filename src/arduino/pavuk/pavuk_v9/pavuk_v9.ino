@@ -3,10 +3,10 @@
 #include <Wire.h>
 #include <MPU6050.h>
 
-// zakomentujte nasledujuci riadok ak nemate MPU6050 gyroskop
+// put next line after comment, if you have no MPU6050 gyroscope
 #define HAVE_GYRO
 
-// zakomentujte nasledujuci riadok ak nemate HC-SR04 ultrazvuk
+// put next line after comment, if you have no HC-SR04 ultrasonic 
 #define HAVE_ULTRASONIC
 
 // pin connections:
@@ -47,14 +47,15 @@
 #define SERIAL_STATE_RECEIVING 1
 #define SERIAL_BUFFER_LENGTH   20
 
-#define LP1 0
-#define LZ1 1
-#define PP1 2
-#define PZ1 3
-#define LP2 4
-#define LZ2 5
-#define PP2 6
-#define PZ2 7
+// left/right front/back 1=upper, 2=lower
+#define LF1 0
+#define LB1 1
+#define RF1 2
+#define RB1 3
+#define LF2 4
+#define LB2 5
+#define RF2 6
+#define RB2 7
 
 #define MAX_SEQ_LENGTH 36
 #define MAX_PROG_SIZE (MAX_SEQ_LENGTH * 9 + 2)
@@ -72,9 +73,9 @@ int seq_length;
 uint8_t seq[MAX_SEQ_LENGTH][8];
 uint8_t delaj[MAX_SEQ_LENGTH];
 uint8_t del = 0;
-uint8_t ultrazvuk = 1;
+uint8_t ultrasonic = 1;
 uint8_t quiet = 0;
-uint8_t je_hore_nohami = 0;
+uint8_t upside_down = 0;
 int pitch;
 int roll;
 uint8_t current_song = 1;
@@ -89,15 +90,15 @@ uint8_t debugged_step;
 
 uint8_t initial[] = {45,135,135,45,175,5,5,175};
 
-uint8_t naopak[] = {45,135,135,45,5,175,175,5};
+uint8_t australian[] = {45,135,135,45,5,175,175,5};
 
 #ifdef HAVE_GYRO
 MPU6050 mpu;
 #endif
 
-int cas = 70;
+int usual_delay = 70;
 int inp = 0;
-int8_t lezi = 0;
+int8_t laying = 0;
 int auto_cube = 0;
 int auto_safe = 0;
 int safe_delay = 500;
@@ -126,15 +127,15 @@ void setup()
   volume = 20;
   seq_length = 0;
   
-  legs[LZ2].attach(11);
-  legs[LZ1].attach(10);
-  legs[LP2].attach(8);
-  legs[LP1].attach(9);
-  legs[PZ2].attach(3);
-  legs[PZ1].attach(5);
-  legs[PP2].attach(6);
-  legs[PP1].attach(7);
-  reset_pozicie();
+  legs[LB2].attach(11);
+  legs[LB1].attach(10);
+  legs[LF2].attach(8);
+  legs[LF1].attach(9);
+  legs[RB2].attach(3);
+  legs[RB1].attach(5);
+  legs[RF2].attach(6);
+  legs[RF1].attach(7);
+  reset_position();
 
   pinMode(WARN_LED, OUTPUT);
   digitalWrite(WARN_LED, LOW);
@@ -144,17 +145,16 @@ void setup()
   init_tone2();
 
   while (Serial.available()) Serial.read();
-  Serial.println(F("Hi! Press a key for USB-powered run."));
+  Serial.println(F("Hi! Press U for USB-powered run."));
   delay(2500);
   if (Serial.available())
   {
-    ignore_batteries = 1;
+    if (Serial.read() == 'U') ignore_batteries = 1;
 	  usb_active = 1;
-    Serial.read();
     Serial.println(F("USB-powered"));
   }
   else Serial.println(F("Bat.powered"));
-
+  Serial.println(F("MoKraRoSA. Press H for help"));
   init_serial(9600);
   
 #ifdef HAVE_GYRO
@@ -169,7 +169,6 @@ void setup()
   mp3_set_volume(volume);
   
   if (load_autostart()) play_sequence(1);
-  serial_println_flash(PSTR("\r\nMokrarosa.\r\nHit H for help."));
 }
 
 void sound_greeting()
@@ -182,7 +181,7 @@ void sound_greeting()
   delay(50);
 }
 
-void pozicia_90()
+void position_90()
 {
     for (int i = 0; i < 8; i++)
       legv[i] = 90;
@@ -191,16 +190,16 @@ void pozicia_90()
       legs[i].write(legv[i]);
 }
 
-void hore_nohami()
+void legs_up()
 {
     for (int i = 0; i < 8; i++)
-      legv[i] = naopak[i];
+      legv[i] = australian[i];
       
     for (int i = 0; i < 8; i++)
       legs[i].write(legv[i]);
 }
 
-void dole_nohami()
+void legs_down()
 {
     for (int i = 0; i < 8; i++)
       legv[i] = initial[i];
@@ -209,175 +208,175 @@ void dole_nohami()
       legs[i].write(legv[i]);
 }
 
-// pre chodzu dole nohami
+// walking legs down
 
-void posunDL()
+void movementDL()
 {
-  legs[LZ2].write(90);
-  delay(cas);
-  legs[LZ1].write(95);
-  delay(cas);
-  legs[LZ2].write(5);
-  delay(cas);
+  legs[LB2].write(90);
+  delay(usual_delay);
+  legs[LB1].write(95);
+  delay(usual_delay);
+  legs[LB2].write(5);
+  delay(usual_delay);
 
-  legs[LP2].write(90);
-  delay(cas);
-  legs[LP1].write(5);
-  delay(cas);
-  legs[LP2].write(175);
-  delay(cas);
-  kalibraceD();
+  legs[LF2].write(90);
+  delay(usual_delay);
+  legs[LF1].write(5);
+  delay(usual_delay);
+  legs[LF2].write(175);
+  delay(usual_delay);
+  calibrationD();
 }
 
-void posunDR()
+void movementDR()
 {
-  legs[PZ2].write(90);
-  delay(cas);
-  legs[PZ1].write(105);
-  delay(cas);
-  legs[PZ2].write(175);
-  delay(cas);
+  legs[RB2].write(90);
+  delay(usual_delay);
+  legs[RB1].write(105);
+  delay(usual_delay);
+  legs[RB2].write(175);
+  delay(usual_delay);
 
-  legs[PP2].write(90);
-  delay(cas);
-  legs[PP1].write(175);
-  delay(cas);
-  legs[PP2].write(5);
-  delay(cas);
-  kalibraceD();
+  legs[RF2].write(90);
+  delay(usual_delay);
+  legs[RF1].write(175);
+  delay(usual_delay);
+  legs[RF2].write(5);
+  delay(usual_delay);
+  calibrationD();
 }
 
-void posunZL()
+void movementZL()
 {
-  legs[LP2].write(90);
-  delay(cas);
-  legs[LP1].write(70);
-  delay(cas);
-  legs[LP2].write(175);
-  delay(cas);
+  legs[LF2].write(90);
+  delay(usual_delay);
+  legs[LF1].write(70);
+  delay(usual_delay);
+  legs[LF2].write(175);
+  delay(usual_delay);
   
-  legs[LZ2].write(90);
-  delay(cas);
-  legs[LZ1].write(175);
-  delay(cas);
-  legs[LZ2].write(5);
-  delay(cas);
-  kalibraceZ();
+  legs[LB2].write(90);
+  delay(usual_delay);
+  legs[LB1].write(175);
+  delay(usual_delay);
+  legs[LB2].write(5);
+  delay(usual_delay);
+  calibrationZ();
 }
 
-void posunZR()
+void movementZR()
 {
-  legs[PP2].write(90);
-  delay(cas);
-  legs[PP1].write(100);
-  delay(cas);
-  legs[PP2].write(5);
-  delay(cas);
+  legs[RF2].write(90);
+  delay(usual_delay);
+  legs[RF1].write(100);
+  delay(usual_delay);
+  legs[RF2].write(5);
+  delay(usual_delay);
   
-  legs[PZ2].write(90);
-  delay(cas);
-  legs[PZ1].write(5);
-  delay(cas);
-  legs[PZ2].write(175);
-  delay(cas);
-  kalibraceZ();
+  legs[RB2].write(90);
+  delay(usual_delay);
+  legs[RB1].write(5);
+  delay(usual_delay);
+  legs[RB2].write(175);
+  delay(usual_delay);
+  calibrationZ();
 }
 
-// pre chodzu hore nohami
+// walking legs up
 
-void posunDL_HN()
+void movementDL_LU()
 {
-  legs[LZ2].write(90);
-  delay(cas);
-  legs[LZ1].write(95);
-  delay(cas);
-  legs[LZ2].write(175);
-  delay(cas);
+  legs[LB2].write(90);
+  delay(usual_delay);
+  legs[LB1].write(95);
+  delay(usual_delay);
+  legs[LB2].write(175);
+  delay(usual_delay);
 
-  legs[LP2].write(90);
-  delay(cas);
-  legs[LP1].write(175);
-  delay(cas);
-  legs[LP2].write(5);
-  delay(cas);
-  kalibraceD();
+  legs[LF2].write(90);
+  delay(usual_delay);
+  legs[LF1].write(175);
+  delay(usual_delay);
+  legs[LF2].write(5);
+  delay(usual_delay);
+  calibrationD();
 }
 
-void posunDR_HN()
+void movementDR_LU()
 {
-  legs[PZ2].write(90);
-  delay(cas);
-  legs[PZ1].write(105);
-  delay(cas);
-  legs[PZ2].write(5);
-  delay(cas);
+  legs[RB2].write(90);
+  delay(usual_delay);
+  legs[RB1].write(105);
+  delay(usual_delay);
+  legs[RB2].write(5);
+  delay(usual_delay);
 
-  legs[PP2].write(90);
-  delay(cas);
-  legs[PP1].write(175);
-  delay(cas);
-  legs[PP2].write(175);
-  delay(cas);
-  kalibraceD();
+  legs[RF2].write(90);
+  delay(usual_delay);
+  legs[RF1].write(175);
+  delay(usual_delay);
+  legs[RF2].write(175);
+  delay(usual_delay);
+  calibrationD();
 }
 
-void posunZL_HN()
+void movementZL_LU()
 {
-  legs[LP2].write(90);
-  delay(cas);
-  legs[LP1].write(70);
-  delay(cas);
-  legs[LP2].write(5);
-  delay(cas);
+  legs[LF2].write(90);
+  delay(usual_delay);
+  legs[LF1].write(70);
+  delay(usual_delay);
+  legs[LF2].write(5);
+  delay(usual_delay);
   
-  legs[LZ2].write(90);
-  delay(cas);
-  legs[LZ1].write(175);
-  delay(cas);
-  legs[LZ2].write(175);
-  delay(cas);
-  kalibraceZ();
+  legs[LB2].write(90);
+  delay(usual_delay);
+  legs[LB1].write(175);
+  delay(usual_delay);
+  legs[LB2].write(175);
+  delay(usual_delay);
+  calibrationZ();
 }
 
-void posunZR_HN()
+void movementZR_LU()
 {
-  legs[PP2].write(90);
-  delay(cas);
-  legs[PP1].write(100);
-  delay(cas);
-  legs[PP2].write(175);
-  delay(cas);
+  legs[RF2].write(90);
+  delay(usual_delay);
+  legs[RF1].write(100);
+  delay(usual_delay);
+  legs[RF2].write(175);
+  delay(usual_delay);
   
-  legs[PZ2].write(90);
-  delay(cas);
-  legs[PZ1].write(5);
-  delay(cas);
-  legs[PZ2].write(5);
-  delay(cas);
-  kalibraceZ();
+  legs[RB2].write(90);
+  delay(usual_delay);
+  legs[RB1].write(5);
+  delay(usual_delay);
+  legs[RB2].write(5);
+  delay(usual_delay);
+  calibrationZ();
 }
 
 // ---
 
 void Xattack()
 {
-  legs[PP1].write(175);
-  legs[LP1].write(5);
-  legs[PZ1].write(90);
-  legs[LZ1].write(90);
-  delay(cas);
-  legs[PP2].write(90);
-  legs[LP2].write(90);
-  delay(cas);
-  legs[PZ1].write(5);
-  legs[LZ1].write(175);
-  delay(cas * 3);
-  legs[PP2].write(175);
-  legs[LP2].write(5);
-  delay(cas * 2);
+  legs[RF1].write(175);
+  legs[LF1].write(5);
+  legs[RB1].write(90);
+  legs[LB1].write(90);
+  delay(usual_delay);
+  legs[RF2].write(90);
+  legs[LF2].write(90);
+  delay(usual_delay);
+  legs[RB1].write(5);
+  legs[LB1].write(175);
+  delay(usual_delay * 3);
+  legs[RF2].write(175);
+  legs[LF2].write(5);
+  delay(usual_delay * 2);
 }
 
-// lahnut
+// lay down
 void cube() 
 {
   for (int i = 4; i < 8; i++)
@@ -389,61 +388,61 @@ void cube()
 
 void safe()
 {
-  if (je_hore_nohami) safe_HN();
-  else safe_DN();
+  if (upside_down) safe_LU();
+  else safe_LD();
 }
 
-// obratka
-void safe_HN()
+// turn around
+void safe_LU()
 {
-  legs[LP1].write(5);
-  legs[PP1].write(175);
+  legs[LF1].write(5);
+  legs[RF1].write(175);
   delay(safe_delay);
-  legs[LP2].write(5);
-  legs[PP2].write(175);
+  legs[LF2].write(5);
+  legs[RF2].write(175);
   delay(safe_delay);
-  legs[LZ1].write(50);
-  legs[PZ1].write(130);
+  legs[LB1].write(50);
+  legs[RB1].write(130);
   delay(safe_delay);
-  legs[LZ2].write(175);
-  legs[PZ2].write(5);
+  legs[LB2].write(175);
+  legs[RB2].write(5);
   delay(safe_delay);
-  legs[LP2].write(175);
-  legs[PP2].write(5);
+  legs[LF2].write(175);
+  legs[RF2].write(5);
   delay(safe_delay);
-  legs[LZ1].write(175);
-  legs[PZ1].write(5);
+  legs[LB1].write(175);
+  legs[RB1].write(5);
   delay(safe_delay);
 }
 
-void safe_DN()
+void safe_LD()
 {
-  legs[LP1].write(5);
-  legs[PP1].write(175);
+  legs[LF1].write(5);
+  legs[RF1].write(175);
   delay(safe_delay);
-  legs[LP2].write(175);
-  legs[PP2].write(5);
+  legs[LF2].write(175);
+  legs[RF2].write(5);
   delay(safe_delay);
-  legs[LZ1].write(50);
-  legs[PZ1].write(130);
+  legs[LB1].write(50);
+  legs[RB1].write(130);
   delay(safe_delay);
-  legs[LZ2].write(5);
-  legs[PZ2].write(175);
+  legs[LB2].write(5);
+  legs[RB2].write(175);
   delay(safe_delay);
-  legs[LP2].write(5);
-  legs[PP2].write(175);
+  legs[LF2].write(5);
+  legs[RF2].write(175);
   delay(safe_delay);
-  legs[LZ1].write(175);
-  legs[PZ1].write(5);
+  legs[LB1].write(175);
+  legs[RB1].write(5);
   delay(safe_delay);
 }
 
-void kalibrace()
+void calibration()
 {
   for (int i = 0; i < 8; i++)
     legv[i] = initial[i];
 
-  if (je_hore_nohami) 
+  if (upside_down) 
     for(int i = 4; i < 8; i++)
       legv[i] = 180 - legv[i];
 
@@ -451,7 +450,7 @@ void kalibrace()
     legs[i].write(legv[i]);
 }
 
-void reset_pozicie()
+void reset_position()
 {
     for (int i = 0; i < 8; i++)
       legv[i] = initial[i];
@@ -460,7 +459,7 @@ void reset_pozicie()
       legs[i].write(legv[i]);
 }
 
-void kalibraceD()
+void calibrationD()
 {
   static uint8_t angles[] = {50, 150, 130, 30};
   for (int i = 0; i < 4; i++)
@@ -470,7 +469,7 @@ void kalibraceD()
     legs[i].write(legv[i]);
 }
 
-void kalibraceZ()
+void calibrationZ()
 {
   static uint8_t angles[] = {30, 130, 130, 50};
   for (int i = 0; i < 4; i++)
@@ -480,114 +479,114 @@ void kalibraceZ()
     legs[i].write(legv[i]);
 }
 
-// chodza
+// walking
 
-void dopredu()
+void forward()
 {
-  if (je_hore_nohami) dopredu_HN();
-  else dopredu_DN();
+  if (upside_down) forward_LU();
+  else forward_LD();
 }
 
-void dozadu()
+void backward()
 {
-  if (je_hore_nohami) dozadu_HN();
-  else dozadu_DN();
+  if (upside_down) backward_LU();
+  else backward_LD();
 }
 
-void pravo()
+void right()
 {
-  if (je_hore_nohami) pravo_HN();
-  else pravo_DN();
+  if (upside_down) right_LU();
+  else right_LD();
 }
 
-void lavo()
+void left()
 {
-  if (je_hore_nohami) lavo_HN();
-  else lavo_DN();
+  if (upside_down) left_LU();
+  else left_LD();
 }
 
-// chodza dole nohami
+// walking legs down
 
-void dopredu_DN()
+void forward_LD()
 {
-  kalibraceD();
-  delay(cas);
-  posunDL();
-  delay(cas);
-  posunDR();
-  delay(cas);
+  calibrationD();
+  delay(usual_delay);
+  movementDL();
+  delay(usual_delay);
+  movementDR();
+  delay(usual_delay);
 }
 
-void dozadu_DN()
+void backward_LD()
 {
-  kalibraceZ();
-  delay(cas);
-  posunZL();
-  delay(cas);
-  posunZR();
-  delay(cas);
+  calibrationZ();
+  delay(usual_delay);
+  movementZL();
+  delay(usual_delay);
+  movementZR();
+  delay(usual_delay);
 }
 
-void pravo_DN()
+void right_LD()
 {
-  kalibraceZ();
-  delay(cas);
-  posunZR();
-  kalibraceD();
-  delay(cas);
-  posunDL();
+  calibrationZ();
+  delay(usual_delay);
+  movementZR();
+  calibrationD();
+  delay(usual_delay);
+  movementDL();
 }
 
-void lavo_DN()
+void left_LD()
 {
-  kalibraceZ();
-  delay(cas);
-  posunZL();
-  kalibraceD();
-  delay(cas);
-  posunDR();
+  calibrationZ();
+  delay(usual_delay);
+  movementZL();
+  calibrationD();
+  delay(usual_delay);
+  movementDR();
 }
 
-// chodza hore nohami
+// walking legs up
 
-void dopredu_HN()
+void forward_LU()
 {
-  kalibraceD();
-  delay(cas);
-  posunDL_HN();
-  delay(cas);
-  posunDR_HN();
-  delay(cas);
+  calibrationD();
+  delay(usual_delay);
+  movementDL_LU();
+  delay(usual_delay);
+  movementDR_LU();
+  delay(usual_delay);
 }
 
-void dozadu_HN()
+void backward_LU()
 {
-  kalibraceZ();
-  delay(cas);
-  posunZL_HN();
-  delay(cas);
-  posunZR_HN();
-  delay(cas);
+  calibrationZ();
+  delay(usual_delay);
+  movementZL_LU();
+  delay(usual_delay);
+  movementZR_LU();
+  delay(usual_delay);
 }
 
-void pravo_HN()
+void right_LU()
 {
-  kalibraceZ();
-  delay(cas);
-  posunZR_HN();
-  kalibraceD();
-  delay(cas);
-  posunDL_HN();
+  calibrationZ();
+  delay(usual_delay);
+  movementZR_LU();
+  calibrationD();
+  delay(usual_delay);
+  movementDL_LU();
 }
 
-void lavo_HN()
+void left_LU()
 {
-  kalibraceZ();
-  delay(cas);
-  posunZL_HN();
-  kalibraceD();
-  delay(cas);
-  posunDR_HN();
+  calibrationZ();
+  delay(usual_delay);
+  movementZL_LU();
+  calibrationD();
+  delay(usual_delay);
+  movementDR_LU();
 }
 
 char read_latest_char() 
@@ -611,17 +610,17 @@ void react_to_gyro()
 {
   refresh_gyro();
 
-  if (!je_hore_nohami && (abs(roll) > 172)) 
+  if (!upside_down && (abs(roll) > 172)) 
   {
-    hore_nohami();
-    je_hore_nohami = 1;
-    serial_println_flash(PSTR("HN"));
+    legs_up();
+    upside_down = 1;
+    serial_println_flash(PSTR("LU"));
   }
-  else if (je_hore_nohami && (abs(roll) < 8))
+  else if (upside_down && (abs(roll) < 8))
   {
-    dole_nohami();
-    je_hore_nohami = 0;
-    serial_println_flash(PSTR("DN"));
+    legs_down();
+    upside_down = 0;
+    serial_println_flash(PSTR("LD"));
   }
     
   if (auto_cube == 1){
@@ -638,7 +637,7 @@ void react_to_gyro()
     if ((roll > 169) || (roll < -169)){
       delay(safe_delay);
       safe();
-      kalibrace();
+      calibration();
       serial_print_flash(PSTR("#"));
       delay(safe_delay);
     }
@@ -652,24 +651,24 @@ void both_modes(char c)
   else if (c == '\\')
     play_sequence(1);
   else if (c == 't'){
-    load_from_EEPROM(1);
-    play_sequence(1);
+    if (load_from_EEPROM(1))
+      play_sequence(1);
   }
   else if (c == 'g'){
-    load_from_EEPROM(2);
-    play_sequence(1);
+    if (load_from_EEPROM(2))
+      play_sequence(1);
   }
   else if (c == 'b'){
-    load_from_EEPROM(3);
-    play_sequence(1);
+    if (load_from_EEPROM(3))
+      play_sequence(1);
   }
   else if (c == '*')
   {
-    reset_pozicie();
-    lezi = 0;
+    reset_position();
+    laying = 0;
   }
   else if (c == '9')
-    pozicia_90();
+    position_90();
   else if (c == 'M')
   {
     if (quiet) mp3_set_volume(volume);
@@ -678,8 +677,8 @@ void both_modes(char c)
     serial_println_num(quiet);
     quiet = 1 - quiet;
   }
-  else if (c == 27) zastav_melodiu();
-  else if ((c == '<') || (c == '<'))
+  else if (c == 27) stop_melody();
+  else if ((c == '<') || (c == '>'))
   {
     if (c == '<') { if (volume > 0) volume--; }
     else if (volume < 30) volume++;
@@ -689,12 +688,12 @@ void both_modes(char c)
   }
   else if (c == 'u')
   {
-    ultrazvuk = 1 - ultrazvuk;
+    ultrasonic = 1 - ultrasonic;
     serial_print_flash(PSTR("ultra:"));
-    serial_println_num(ultrazvuk);
+    serial_println_num(ultrasonic);
   }
-  else if ((c == 'h') || (c == 'H')) print_usage();
-  else if (c == 'B') serial_println_num(meraj_baterku());
+  else if ((c == 'h') || (c == 'H') || (c == '?')) print_usage();
+  else if (c == 'B') serial_println_num(measure_bat());
   else try_melodies(c);
 }
 
@@ -747,12 +746,13 @@ void edit_mode(char c)
       for (int i = 0; i < 8; i++)
         legv[i] = seq[debugged_step][i];
     }
-    else if (c == 13)
+    else if ((c == 13) || (c == 'W'))
     {
       for (int i = 0; i < 8; i++)
         seq[debugged_step][i] = legv[i];
       serial_println_flash(PSTR("replaced"));
     }
+    else if ((c == 'h') || (c == 'H') || (c == '?')) print_usage();
   }
   else if (c == 'C') 
   {
@@ -761,13 +761,18 @@ void edit_mode(char c)
   }
   else if (c == 9)
   {
-    debug_mode = 1;
-    debugged_step = 0;
-    dump_sequence(1);
-    serial_println_flash(PSTR("debug: 1"));
-    play_step(0);
+    if (seq_length > 0)
+    {
+      debug_mode = 1;
+      debugged_step = 0;
+      dump_sequence(1);
+      serial_println_flash(PSTR("debug: 1"));
+      serial_println_flash(PSTR("step 0"));
+      play_step(0);
+    }
+    else serial_println_flash(PSTR("nothing to debug"));
   }
-  else if (c == 13)
+  else if ((c == 13) || (c == 'W'))
     store_new_point();
   else if (c == ' ')
     dump_sequence(0);
@@ -796,29 +801,29 @@ void edit_mode(char c)
 
 void control_mode(char c)
 {
-  if (c == '1') dopredu();
-  else if (c == '2') dozadu();
-  else if (c == '3') pravo();
-  else if (c == '4') lavo();
+  if (c == '1') forward();
+  else if (c == '2') backward();
+  else if (c == '3') right();
+  else if (c == '4') left();
   else if (c == '5') {
     Xattack();
-    kalibrace();
+    calibration();
   }
   else if (c == '6'){
-    if (lezi == 1){
-      kalibrace();
-      serial_println_flash(PSTR("vztyk"));
-      lezi = 0;
+    if (laying == 1){
+      calibration();
+      serial_println_flash(PSTR("stand-up"));
+      laying = 0;
     }
     else {
       cube();
-      serial_println_flash(PSTR("lah"));
-      lezi = 1;
+      serial_println_flash(PSTR("lay-down"));
+      laying = 1;
     }
   }
   else if (c == '7'){
     safe();
-    kalibrace();
+    calibration();
   }
   else if (c == '0')
   {
@@ -843,7 +848,7 @@ void control_mode(char c)
 
 void control_over_bt()
 {
-  pip();  
+  beep();
   inp = read_latest_char();
   if (in_edit_mode)
     edit_mode(inp);  
@@ -861,12 +866,12 @@ void control_over_serial()
 
 void try_melodies(char c)
 {
-  if (c == ',') zahraj_melodiu(1);
-  else if (c == '.') zahraj_melodiu(2);
-  else if (c == ';') zahraj_melodiu(3);
-  else if (c == '[') zahraj_melodiu(4);
-  else if (c == ']') zahraj_melodiu(5);
-  else if (c == '\'') zahraj_melodiu(6);
+  if (c == ',') play_melody(1);
+  else if (c == '.') play_melody(2);
+  else if (c == ';') play_melody(3);
+  else if (c == '[') play_melody(4);
+  else if (c == ']') play_melody(5);
+  else if (c == '\'') play_melody(6);
   if (c == 'm')
   {
     mp3_play(current_song);
@@ -885,10 +890,10 @@ void try_melodies(char c)
 void loop() 
 {
 #ifdef HAVE_ULTRASONIC
-  if ((meraj() < 15) && ultrazvuk)
+  if ((measure_US() < 15) && ultrasonic)
   {
-    // sem si dajte kod, ktory sa vykonava, ak je pred robotom prekazka:
-    dozadu();
+    // insert your code to react to obstacle in front of robot here
+    backward();
   }
 #endif
 
@@ -901,7 +906,7 @@ void loop()
   react_to_gyro();
 #endif
 
-  skontroluj_baterku();
+  check_battery();
 }
 
 void print_usage()
@@ -913,7 +918,7 @@ void print_usage()
       serial_println_flash(PSTR("Debug mode:"));
       serial_println_flash(PSTR(" TAB   - leave debug mode"));
       serial_println_flash(PSTR(" SPACE - move to next step"));
-      serial_println_flash(PSTR(" ENTER - replace with current"));
+      serial_println_flash(PSTR(" ENTER/W - replace with current"));
       serial_println_flash(PSTR(" ESC   - restore current step"));
     }
     else serial_println_flash(PSTR("Edit mode. Hit C for control mode."));
@@ -926,12 +931,12 @@ void print_usage()
 	  }
 	  serial_println_flash(PSTR("Step size control:"));
 	  serial_print_char(key_step_minus);
-	  serial_print(PSTR(" ... "));
+	  serial_print_flash(PSTR(" ... "));
 	  serial_println_char(key_step_plus);
 	  delay(150);
     if (!debug_mode)
     {
-  	  serial_println_flash(PSTR("Store next point: ENTER"));
+  	  serial_println_flash(PSTR("Store next point: ENTER/W"));
   	  serial_println_flash(PSTR("Print the sequence: SPACE"));
   	  serial_println_flash(PSTR("Load (paste in) the sequence: L"));
   	  serial_println_flash(PSTR("Save to EEPROM: E"));
@@ -939,7 +944,13 @@ void print_usage()
   	  serial_println_flash(PSTR("Toggle autostart: A"));
   	  serial_println_flash(PSTR("Erase sequence: R"));
   	  serial_println_flash(PSTR("Undo to last saved position: U"));
+      serial_println_flash(PSTR("Enter debug mode: TAB"));
   	  serial_println_flash(PSTR("(to insert a break, repeat the same position again with delay)"));	  
+    }
+    else
+    {
+      serial_println_flash(PSTR("Print help: h"));
+      return;
     }
   } else
   {	  
@@ -975,11 +986,11 @@ void store_new_point()
 {
   char c = 0;
   if (seq_length == MAX_SEQ_LENGTH) return;
-  while (c != 13)
+  while ((c != 13) && (c != 'W'))
   {
     serial_print_flash(PSTR(" "));
     serial_print_char((char)13);
-    serial_print(PSTR("(+/-/ENTER) delay = "));
+    serial_print_flash(PSTR("(+/-/ENTER;W) delay = "));
     serial_print_num(del);
 	  while ((!Serial.available()) && !serial_available());
 	  if (Serial.available()) c = Serial.read();
@@ -1000,7 +1011,7 @@ void dump_row(int i)
     for (int j = 0; j < 8; j++)
     {
       serial_print_num(seq[i][j]);
-      serial_print(PSTR(" "));
+      serial_print_flash(PSTR(" "));
     }
     serial_println_num(delaj[i]);
 }
@@ -1013,11 +1024,11 @@ void dump_sequence(uint8_t step_numbers)
     if (step_numbers) 
     { 
        serial_print_num(i);
-       serial_print_flash(". ");
+       serial_print_flash(PSTR(". "));
     }
     dump_row(i);
   }
-  serial_println(PSTR("---"));
+  serial_println_flash(PSTR("---"));
 }
 
 void play_step(uint8_t i)
@@ -1039,7 +1050,7 @@ void play_step(uint8_t i)
 
 void play_sequence(uint8_t repete)
 {
-  if (repete) if (!quiet) zahraj_melodiu(6);
+  if (repete) if (!quiet) play_melody(6);
   do 
   {
     for (int i = 0; i < seq_length; i++)
@@ -1048,14 +1059,14 @@ void play_sequence(uint8_t repete)
 	    if (serial_available()) { serial_read(); repete = 0; break; }
       dump_row(i);
       play_step(i);
-	    skontroluj_baterku();
+	    check_battery();
     }
     if (Serial.available()) { Serial.read(); break; }
     if (serial_available()) { serial_read(); break; }
   } while (repete);
   for (int i = 0; i < 8; i++)
     legv[i] = seq[seq_length - 1][i];
-  zastav_melodiu();
+  stop_melody();
 }
 
 void load_sequence()
@@ -1171,11 +1182,13 @@ void undo_step()
 	  char c = anyserial_readchar();
     if (c == 'n') return;
   }
-  for (int i = 0; i < 8; i++)
-  {
-    legv[i] = seq[seq_length - 1][i];
-    legs[i].write(legv[i]);
-  }
+  if (seq_length > 0)
+    for (int i = 0; i < 8; i++)
+    {
+      legv[i] = seq[seq_length - 1][i];
+      legs[i].write(legv[i]);
+    }
+  else calibration();
 }
 
 int8_t ask_for_slot_num()
@@ -1231,7 +1244,7 @@ uint8_t load_autostart()
   if (EEPROM.read(1022) == '~')
   {
     uint8_t autostart = EEPROM.read(1023);
-    if (autostart) load_from_EEPROM(autostart);
+    if (autostart) return load_from_EEPROM(autostart);
     return autostart;
   }
   else return 0;  
@@ -1254,21 +1267,21 @@ void toggle_autostart()
   }
 }
 
-void load_from_EEPROM(int8_t prognum)
+uint8_t load_from_EEPROM(int8_t prognum)
 {
   if (prognum == 0)
   {
     prognum = ask_for_slot_num();
-    if (prognum < 0) return;
+    if (prognum < 0) return 0;
     serial_print_flash(PSTR("Read sequence from EEPROM [y/n]: "));
     char c = anyserial_readchar();
-    if (c != 'y') return;
+    if (c != 'y') return 0;
   }
   else prognum--;
   if (EEPROM.read(prognum * MAX_PROG_SIZE + 0) != '@')
   {
     serial_println_flash(PSTR("nothing in EEPROM"));
-    return;
+    return 0;
   }
   
   seq_length = EEPROM.read(prognum * MAX_PROG_SIZE + 1);
@@ -1280,9 +1293,10 @@ void load_from_EEPROM(int8_t prognum)
   }
   serial_print_num(seq_length);
   serial_println_flash(PSTR(" positions."));
+  return 1;
 }
 
-int meraj_baterku()
+int measure_bat()
 {
   analogReference(INTERNAL); 
   float volt = analogRead(A3); 
@@ -1291,22 +1305,24 @@ int meraj_baterku()
   return (int)(0.5 + 100.0 * volt * 0.01181640625);   
 }
 
-void skontroluj_baterku()
+void check_battery()
 {
-  static long posledne_meranie = 0;
-  static long pocet_merani = 0;
+  static long last_measurement = 0;
+  static long measurement_count = 0;
 
   if (ignore_batteries) return;
   long tm = millis();
-  if (tm - posledne_meranie > 500)
+  if (tm - last_measurement > 500)
   {
-    posledne_meranie = tm;
-    if (meraj_baterku() < 620)  
+    last_measurement = tm;
+    if (measure_bat() < 620)  
     {
-      pocet_merani++;
-      if (pocet_merani < 5) return;
+      measurement_count++;
+      if (measurement_count < 5) return;
       delay(50);
-      serial_println_flash(PSTR("!!!!!!!!!!!!!!!! Nabit baterky !!!!!!!!!!!!!!!!!!!!")); 
+      usb_active = 1;
+      bt_active = 1;
+      serial_println_flash(PSTR("!!!!!!!!!!!!!!!! Replace batteries !!!!!!!!!!!!!!!!!!!!")); 
       mp3_set_volume(0);
       for (int i = 0; i < 8; i++)
         legs[i].detach();
@@ -1315,7 +1331,7 @@ void skontroluj_baterku()
       pinMode(WARN_LED, OUTPUT);
       while(1) SOS();
     }
-    else pocet_merani = 0;
+    else measurement_count = 0;
   }
 }
 
@@ -1406,7 +1422,6 @@ ISR(PCINT2_vect)
   } else
     next_bit_order = (tm - time_startbit_noticed - half_of_one_bit_duration) / one_bit_duration;
 }
-
 
 uint8_t serial_available()
 {
@@ -1651,23 +1666,23 @@ void mp3_send_packet(uint8_t cmd, uint16_t param)
   mp3_send_byte(MP3_OUTPUT_PIN, 0xEF);
 }
 
-int meraj()
+int measure_US()
 {
   digitalWrite(TRIG, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG, LOW);
-  unsigned long pocitadlo = micros() + 10000;
-  while ((digitalRead(ECHO) == 0) & (micros() < pocitadlo)) { }
+  unsigned long counter = micros() + 10000;
+  while ((digitalRead(ECHO) == 0) & (micros() < counter)) { }
   if (digitalRead(ECHO) == 0) return 255;
-  unsigned long cas1 = micros();
-  pocitadlo = cas1 + 10000; 
-  while ((digitalRead(ECHO) == 1) && (micros() < pocitadlo)) { }
+  unsigned long tm1 = micros();
+  counter = tm1 + 10000; 
+  while ((digitalRead(ECHO) == 1) && (micros() < counter)) { }
   if (digitalRead(ECHO) == 1) return 255;
-  unsigned long cas2 = micros();
-  return (cas2 - cas1) / 58;
+  unsigned long tm2 = micros();
+  return (tm2 - tm1) / 58;
 }
 
-//-------------------------------- nasleduje prehravanie melodie a hranie cez timer2 v pozadi
+//-------------------------------- the following code is for playing melodies using timer2 in the background
 #define SIRENE_PORT  PORTB
 #define SIRENE_DDR   DDRB
 #define SIRENE_PIN   5
@@ -1678,8 +1693,8 @@ int meraj()
 float octave_4[] = { 2093.00, 2217.46, 2349.32, 2489.02, 2637.02, 2793.83, 2959.96, 3135.96, 3322.44, 3520.00, 3729.31, 3951.07 };
 
 //popcorn
-uint16_t dlzka_melodia[] = {0, 386, 26, 281, 217, 36, 468};
-const uint8_t melodia1[] PROGMEM = { 252, 50, 149,  49,
+uint16_t melody_len[] = {0, 386, 26, 281, 217, 36, 468};
+const uint8_t melody1[] PROGMEM = { 252, 50, 149,  49,
                                      28, 31, 35, 40, 49, 99, 38, 49, 99, 40, 49, 99, 35, 49, 99, 31, 49, 99, 35, 49, 99, 28, 49, 99, 49,
                                      28, 31, 35, 40, 49, 99, 38, 49, 99, 40, 49, 99, 35, 49, 99, 31, 49, 99, 35, 49, 99, 28, 49, 99, 149,
                                      40, 49, 99, 42, 49, 99, 43, 49, 99, 42, 49, 99, 43, 49, 99, 40, 49, 99, 42, 49, 99, 40, 49, 99, 42, 49, 99, 38, 49, 99, 40, 49, 99, 38, 49, 99, 40, 49, 99, 36, 49, 99, 40, 49, 99,
@@ -1695,10 +1710,10 @@ const uint8_t melodia1[] PROGMEM = { 252, 50, 149,  49,
                                    };
 
 //kohutik jarabi
-const uint8_t melodia2[] PROGMEM = { 252, 150, 119, 121, 173, 174, 124, 124, 124, 123, 171, 173, 123, 123, 123, 121, 169, 171, 121, 121, 121, 123, 171, 169, 119, 119 };
+const uint8_t melody2[] PROGMEM = { 252, 150, 119, 121, 173, 174, 124, 124, 124, 123, 171, 173, 123, 123, 123, 121, 169, 171, 121, 121, 121, 123, 171, 169, 119, 119 };
 
-//kankan
-const uint8_t melodia3[] PROGMEM = { 252, 100,
+//CAN-CAN
+const uint8_t melody3[] PROGMEM = { 252, 100,
                                      251, 1, 184, 1, 32, 126, 149, 251, 1, 184, 1, 32, 126, 149, 251, 1, 184, 1, 32, 126, 251, 1, 184, 1, 32, 126, 251, 1, 184, 1, 32, 126, 251, 1, 184, 1, 32, 126,
                                      64, 71, 71, 73, 71, 69, 69, 73, 74, 78, 81, 78, 78, 76, 251, 1, 184, 1, 32, 126, 78, 68, 68, 78, 76, 69, 69, 73, 73, 71, 73, 71, 85, 83, 85, 83,
                                      64, 71, 71, 73, 71, 69, 69, 73, 74, 78, 81, 78, 78, 76, 251, 1, 184, 1, 32, 126, 78, 68, 68, 78, 76, 69, 69, 73, 73, 71, 73, 71, 71, 69, 119,
@@ -1715,8 +1730,8 @@ const uint8_t melodia3[] PROGMEM = { 252, 100,
                                      131, 119, 119, 119, 169
                                    };
 
-//labutie jazero
-const uint8_t melodia4[] PROGMEM = {
+//swan lake
+const uint8_t melody4[] PROGMEM = {
   252, 220, 66, 69, 73, 69, 66, 69, 73, 69, 66, 69, 73, 69, 66, 69, 73, 69,
   185, 78, 80, 81, 83, 251, 5, 39, 3, 8, 81, 251, 5, 39, 3, 8, 81, 251, 5, 39, 3, 8, 78, 81, 78, 73, 81, 178,
   99, 83, 81, 80,
@@ -1729,12 +1744,12 @@ const uint8_t melodia4[] PROGMEM = {
 };
 
 //let it be https://www.musicnotes.com/sheetmusic/mtd.asp?ppn=MN0101556
-const uint8_t melodia5[] PROGMEM = { 252, 200, 26, 26, 76, 26, 253, 78, 73, 76, 76, 31, 253, 83, 35, 85, 253, 85, 
+const uint8_t melody5[] PROGMEM = { 252, 200, 26, 26, 76, 26, 253, 78, 73, 76, 76, 31, 253, 83, 35, 85, 253, 85, 
                                      83, 83, 81, 131, 35, 253, 85, 86, 35, 35, 85, 83, 99, 35, 33, 83, 81, 181 
 };
 
 //Turkish march by Mozart
-const uint8_t melodia6[] PROGMEM = { 80, 78, 77, 78, 131, 149, 83, 81, 80, 81, 135, 149, 86, 85, 84, 85, 92, 90, 
+const uint8_t melody6[] PROGMEM = { 80, 78, 77, 78, 131, 149, 83, 81, 80, 81, 135, 149, 86, 85, 84, 85, 92, 90, 
 89, 90, 92, 90, 89, 90, 193, 140, 143, 142, 140, 138, 140, 142, 140, 138, 
 140, 142, 140, 138, 137, 185, 80, 78, 77, 78, 131, 149, 83, 81, 80, 81, 
 135, 149, 86, 85, 84, 85, 92, 90, 89, 90, 92, 90, 89, 90, 193, 140, 143, 
@@ -1769,20 +1784,20 @@ volatile const uint8_t *current_note ;
 volatile uint16_t notes_remaining;
 uint8_t dotted_note = 0;
 
-void zahraj_melodiu(uint8_t cislo)
+void play_melody(uint8_t num)
 {
-  if (cislo == 0) {
-    zastav_melodiu();
+  if (num == 0) {
+    stop_melody();
     return;
   }
 
-  if (cislo == 1) current_note = melodia1;
-  else if (cislo == 2) current_note = melodia2;
-  else if (cislo == 3) current_note = melodia3;
-  else if (cislo == 4) current_note = melodia4;
-  else if (cislo == 5) current_note = melodia5;
-  else if (cislo == 6) current_note = melodia6;
-  notes_remaining = dlzka_melodia[cislo];
+  if (num == 1) current_note = melody1;
+  else if (num == 2) current_note = melody2;
+  else if (num == 3) current_note = melody3;
+  else if (num == 4) current_note = melody4;
+  else if (num == 5) current_note = melody5;
+  else if (num == 6) current_note = melody6;
+  notes_remaining = melody_len[num];
 
   next_note();
 }
@@ -1978,12 +1993,12 @@ void tone2(uint16_t freq, uint16_t duration)
   }
 }
 
-void pip()
+void beep()
 {
   if (notes_remaining == 0) tone2(698, 30);
 }
 
-void zastav_melodiu()
+void stop_melody()
 {
   notes_remaining = 0;
 }
