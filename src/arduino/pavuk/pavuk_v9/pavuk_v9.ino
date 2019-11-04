@@ -6,6 +6,9 @@
 // put next line after comment, if you have no MPU6050 gyroscope
 #define HAVE_GYRO
 
+// for version 1 comment-cout the following line
+#define GYRO_UPSIDE_DOWN
+
 // put next line after comment, if you have no HC-SR04 ultrasonic 
 #define HAVE_ULTRASONIC
 
@@ -149,9 +152,12 @@ void setup()
   delay(2500);
   if (Serial.available())
   {
-    if (Serial.read() == 'U') ignore_batteries = 1;
-	  usb_active = 1;
-    Serial.println(F("USB-powered"));
+    if (Serial.read() == 'U') 
+    {
+      ignore_batteries = 1;
+      Serial.println(F("USB-powered"));
+    }
+    usb_active = 1;
   }
   else Serial.println(F("Bat.powered"));
   Serial.println(F("MoKraRoSA. Press H for help"));
@@ -603,6 +609,10 @@ void refresh_gyro()
   Vector normAccel = mpu.readNormalizeAccel();
   pitch = -(atan2(normAccel.XAxis, sqrt(normAccel.YAxis*normAccel.YAxis + normAccel.ZAxis*normAccel.ZAxis))*180.0)/M_PI;
   roll = (atan2(normAccel.YAxis, normAccel.ZAxis)*180.0)/M_PI;  
+#ifdef GYRO_UPSIDE_DOWN
+  roll += 180;
+  if (roll > 180) roll -= 360;
+#endif
 #endif
 }
 
@@ -922,30 +932,30 @@ void print_usage()
       serial_println_flash(PSTR(" ESC   - restore current step"));
     }
     else serial_println_flash(PSTR("Edit mode. Hit C for control mode."));
-	  serial_println_flash(PSTR("Servo control:"));
-	  for (int i = 0; i < 8; i++)
-	  {
-		  serial_print_char(minuskey[i]);
-		  serial_print_flash(PSTR(" ... "));
-		  serial_println_char(pluskey[i]);
-	  }
-	  serial_println_flash(PSTR("Step size control:"));
-	  serial_print_char(key_step_minus);
-	  serial_print_flash(PSTR(" ... "));
-	  serial_println_char(key_step_plus);
-	  delay(150);
+    serial_println_flash(PSTR("Servo control:"));
+    for (int i = 0; i < 8; i++)
+    {
+      serial_print_char(minuskey[i]);
+      serial_print_flash(PSTR(" ... "));
+      serial_println_char(pluskey[i]);
+    }
+    serial_println_flash(PSTR("Step size control:"));
+    serial_print_char(key_step_minus);
+    serial_print_flash(PSTR(" ... "));
+    serial_println_char(key_step_plus);
+    delay(150);
     if (!debug_mode)
     {
-  	  serial_println_flash(PSTR("Store next point: ENTER/W"));
-  	  serial_println_flash(PSTR("Print the sequence: SPACE"));
-  	  serial_println_flash(PSTR("Load (paste in) the sequence: L"));
-  	  serial_println_flash(PSTR("Save to EEPROM: E"));
-  	  serial_println_flash(PSTR("Load from EEPROM: O"));
-  	  serial_println_flash(PSTR("Toggle autostart: A"));
-  	  serial_println_flash(PSTR("Erase sequence: R"));
-  	  serial_println_flash(PSTR("Undo to last saved position: U"));
+      serial_println_flash(PSTR("Store next point: ENTER/W"));
+      serial_println_flash(PSTR("Print the sequence: SPACE"));
+      serial_println_flash(PSTR("Load (paste in) the sequence: L"));
+      serial_println_flash(PSTR("Save to EEPROM: E"));
+      serial_println_flash(PSTR("Load from EEPROM: O"));
+      serial_println_flash(PSTR("Toggle autostart: A"));
+      serial_println_flash(PSTR("Erase sequence: R"));
+      serial_println_flash(PSTR("Undo to last saved position: U"));
       serial_println_flash(PSTR("Enter debug mode: TAB"));
-  	  serial_println_flash(PSTR("(to insert a break, repeat the same position again with delay)"));	  
+      serial_println_flash(PSTR("(to insert a break, repeat the same position again with delay)"));   
     }
     else
     {
@@ -953,17 +963,17 @@ void print_usage()
       return;
     }
   } else
-  {	  
+  {   
     serial_println_flash(PSTR("Control mode. Hit E for edit mode."));    
-	  serial_println_flash(PSTR(" 1: forward"));
-	  serial_println_flash(PSTR(" 2: backward"));
-	  serial_println_flash(PSTR(" 3: right"));
-	  serial_println_flash(PSTR(" 4: left"));
-	  serial_println_flash(PSTR(" 5: lift oponent"));
-	  serial_println_flash(PSTR(" 6: lay down (cube)"));
-	  serial_println_flash(PSTR(" 7: roll over (safe)"));
-	  serial_println_flash(PSTR(" 0: switch auto cube"));
-	  serial_println_flash(PSTR(" 8: switch auto safe"));  
+    serial_println_flash(PSTR(" 1: forward"));
+    serial_println_flash(PSTR(" 2: backward"));
+    serial_println_flash(PSTR(" 3: right"));
+    serial_println_flash(PSTR(" 4: left"));
+    serial_println_flash(PSTR(" 5: lift oponent"));
+    serial_println_flash(PSTR(" 6: lay down (cube)"));
+    serial_println_flash(PSTR(" 7: roll over (safe)"));
+    serial_println_flash(PSTR(" 0: switch auto cube"));
+    serial_println_flash(PSTR(" 8: switch auto safe"));  
   } 
   delay(150); 
   serial_println_flash(PSTR("Play the sequence: /"));
@@ -992,9 +1002,9 @@ void store_new_point()
     serial_print_char((char)13);
     serial_print_flash(PSTR("(+/-/ENTER;W) delay = "));
     serial_print_num(del);
-	  while ((!Serial.available()) && !serial_available());
-	  if (Serial.available()) c = Serial.read();
-	  else c = serial_read();
+    while ((!Serial.available()) && !serial_available());
+    if (Serial.available()) c = Serial.read();
+    else c = serial_read();
     if (c == '+') if (del < 30) del++;
     if (c == '-') if (del > 0) del--;
   }
@@ -1056,10 +1066,10 @@ void play_sequence(uint8_t repete)
     for (int i = 0; i < seq_length; i++)
     {
       if (Serial.available()) { Serial.read(); repete = 0; break; }
-	    if (serial_available()) { serial_read(); repete = 0; break; }
+      if (serial_available()) { serial_read(); repete = 0; break; }
       dump_row(i);
       play_step(i);
-	    check_battery();
+      check_battery();
     }
     if (Serial.available()) { Serial.read(); break; }
     if (serial_available()) { serial_read(); break; }
@@ -1119,12 +1129,12 @@ int read_number(uint8_t *ok)
     int x = 0;
     *ok = 0;
     while (1) {
-	  if (Serial.available() || serial_available())
+    if (Serial.available() || serial_available())
     {
-		  int c;
-		  if (Serial.available()) c = Serial.read();
-		  else c = serial_read();
-	    serial_print_char(c);
+      int c;
+      if (Serial.available()) c = Serial.read();
+      else c = serial_read();
+      serial_print_char(c);
       if (c == 8) x /= 10;
       if ((c >= '0') && (c <= '9'))
       {
@@ -1179,7 +1189,7 @@ void undo_step()
   else
   {
     serial_print_flash(PSTR("Undo? [y/n]: "));
-	  char c = anyserial_readchar();
+    char c = anyserial_readchar();
     if (c == 'n') return;
   }
   if (seq_length > 0)
@@ -1427,7 +1437,7 @@ uint8_t serial_available()
 {
   cli();
   if (serial_buf_rp != serial_buf_wp)
-  {	
+  { 
     sei();
     return 1;
   }
@@ -1440,7 +1450,7 @@ uint8_t serial_available()
       serial_buffer[serial_buf_wp] = receiving_byte;
       serial_buf_wp++;
       if (serial_buf_wp == SERIAL_BUFFER_LENGTH) serial_buf_wp = 0;
-	  sei();
+    sei();
       return 1;
     }
   }
@@ -1457,7 +1467,7 @@ int16_t serial_read()
     serial_buf_rp++;
     if (serial_buf_rp == SERIAL_BUFFER_LENGTH) serial_buf_rp = 0;
     sei();
-    if (ch < 250) bt_active = 1; // HC-05 sends weird char on connect   	
+    if (ch < 250) bt_active = 1; // HC-05 sends weird char on connect     
     return ch;
   }
 
@@ -1507,21 +1517,21 @@ void serial_write(uint8_t ch)
     Serial.print((char)ch);
   if (bt_active)
   {
-	  PORTD &= ~16;
-	  delayMicroseconds(one_bit_write_duration);
-	  for (uint8_t i = 0; i < 8; i++)
-	  {
-		if (ch & 1) PORTD |= 16;
-		else PORTD &= ~16;
-		ch >>= 1;
-		delayMicroseconds(one_bit_write_duration);
-	  }
-	  PORTD |= 16;
-	  delayMicroseconds(one_bit_write_duration);
-	  delayMicroseconds(one_bit_write_duration);
-	  delayMicroseconds(one_bit_write_duration);
-	  delayMicroseconds(one_bit_write_duration);
-	  delayMicroseconds(one_bit_write_duration);
+    PORTD &= ~16;
+    delayMicroseconds(one_bit_write_duration);
+    for (uint8_t i = 0; i < 8; i++)
+    {
+    if (ch & 1) PORTD |= 16;
+    else PORTD &= ~16;
+    ch >>= 1;
+    delayMicroseconds(one_bit_write_duration);
+    }
+    PORTD |= 16;
+    delayMicroseconds(one_bit_write_duration);
+    delayMicroseconds(one_bit_write_duration);
+    delayMicroseconds(one_bit_write_duration);
+    delayMicroseconds(one_bit_write_duration);
+    delayMicroseconds(one_bit_write_duration);
   }
 }
 
