@@ -6,7 +6,7 @@
 // put next line after comment, if you have no MPU6050 gyroscope
 #define HAVE_GYRO
 
-// for version 1 comment-cout the following line
+// for version 1 comment-out the following line
 #define GYRO_UPSIDE_DOWN
 
 // put next line after comment, if you have no HC-SR04 ultrasonic 
@@ -687,7 +687,7 @@ void both_modes(char c)
     serial_println_num(quiet);
     quiet = 1 - quiet;
   }
-  else if (c == 27) stop_melody();
+  else if ((c == 27) || (c == ':')) stop_melody();
   else if ((c == '<') || (c == '>'))
   {
     if (c == '<') { if (volume > 0) volume--; }
@@ -737,14 +737,59 @@ void edit_mode(char c)
   }
   else if (debug_mode)
   {
-    if (c == 9)
+    if ((c == 9) || (c == 'T'))
     {
       debug_mode = 0;
       serial_println_flash(PSTR("debug: 0"));
     }
-    else if ((c == ' ') || (c == 27))
+    else if ((c == ' ') || (c == 27) || (c == ':') || (c == 'N') || (c == 'D') || (c == 'I'))
     {
-      if (c == ' ') 
+      if (c == 'D')
+      {
+        if (seq_length > 0)
+        {
+          if (debugged_step == seq_length - 1)
+          {
+            debugged_step--;
+          }        
+          else 
+          {
+             for (int i = debugged_step; i < seq_length - 1; i++)
+             {
+               for (int j = 0; j < 8; j++)
+                 seq[i][j] = seq[i + 1][j];
+               delaj[i] = delaj[i + 1];
+             }
+          }
+          seq_length--;
+          serial_println_flash(PSTR("deleted"));
+        }
+        else 
+        {
+          tone2(2000, 50);
+          serial_println_flash(PSTR("only 1 remains"));
+        }
+      } 
+      else if (c == 'I')
+      {
+         if (seq_length < MAX_SEQ_LENGTH)
+         {
+           for (int i = seq_length; i > debugged_step; i--)
+           {
+              for (int j = 0; j < 8; j++)
+                seq[i][j] = seq[i - 1][j];
+              delaj[i] = delaj[i - 1];
+           }
+           seq_length++;   
+           serial_println_flash(PSTR("inserted"));
+         }
+         else 
+         {
+           tone2(2000, 50);
+           serial_println_flash(PSTR("full"));
+         }
+      }
+      else if ((c == ' ') || (c == 'N')) 
       {
         debugged_step++;
         if (debugged_step == seq_length) debugged_step = 0;
@@ -769,7 +814,7 @@ void edit_mode(char c)
     in_edit_mode = 0;
     serial_println_flash(PSTR("ctrl mode"));
   }
-  else if (c == 9)
+  else if ((c == 9) || (c == 'T'))
   {
     if (seq_length > 0)
     {
@@ -784,7 +829,7 @@ void edit_mode(char c)
   }
   else if ((c == 13) || (c == 'W'))
     store_new_point();
-  else if (c == ' ')
+  else if ((c == ' ') || (c == 'N'))
     dump_sequence(0);
   else if (c == 'E')
     store_to_EEPROM();
@@ -926,10 +971,12 @@ void print_usage()
     if (debug_mode)
     {
       serial_println_flash(PSTR("Debug mode:"));
-      serial_println_flash(PSTR(" TAB   - leave debug mode"));
-      serial_println_flash(PSTR(" SPACE - move to next step"));
+      serial_println_flash(PSTR(" TAB/T   - leave debug mode"));
+      serial_println_flash(PSTR(" SPACE/N - move to next step"));
       serial_println_flash(PSTR(" ENTER/W - replace with current"));
-      serial_println_flash(PSTR(" ESC   - restore current step"));
+      serial_println_flash(PSTR(" ESC/:   - restore current step"));
+      serial_println_flash(PSTR(" D       - delete current step"));
+      serial_println_flash(PSTR(" ESC/:   - insert step before current"));
     }
     else serial_println_flash(PSTR("Edit mode. Hit C for control mode."));
     serial_println_flash(PSTR("Servo control:"));
@@ -947,14 +994,14 @@ void print_usage()
     if (!debug_mode)
     {
       serial_println_flash(PSTR("Store next point: ENTER/W"));
-      serial_println_flash(PSTR("Print the sequence: SPACE"));
+      serial_println_flash(PSTR("Print the sequence: SPACE/N"));
       serial_println_flash(PSTR("Load (paste in) the sequence: L"));
       serial_println_flash(PSTR("Save to EEPROM: E"));
       serial_println_flash(PSTR("Load from EEPROM: O"));
       serial_println_flash(PSTR("Toggle autostart: A"));
       serial_println_flash(PSTR("Erase sequence: R"));
       serial_println_flash(PSTR("Undo to last saved position: U"));
-      serial_println_flash(PSTR("Enter debug mode: TAB"));
+      serial_println_flash(PSTR("Enter debug mode: TAB/T"));
       serial_println_flash(PSTR("(to insert a break, repeat the same position again with delay)"));   
     }
     else
@@ -984,7 +1031,7 @@ void print_usage()
   serial_println_flash(PSTR("Ultrasonic ON/OFF: u"));
   serial_println_flash(PSTR("Battery level (*100 V): B"));
   serial_println_flash(PSTR("Play melody: . , ; ' [ ]"));
-  serial_println_flash(PSTR("Stop melody: ESC"));
+  serial_println_flash(PSTR("Stop melody: ESC/:"));
   delay(150); 
   serial_println_flash(PSTR("Play/change music: m j n"));
   serial_println_flash(PSTR("Music volume on/off: M"));
@@ -1081,7 +1128,7 @@ void play_sequence(uint8_t repete)
 
 void load_sequence()
 {
-  serial_print_flash(PSTR("Paste the sequence (or type SPACE to cancel): "));
+  serial_print_flash(PSTR("Paste the sequence (or type SPACE/N to cancel): "));
   char c;
   uint8_t ok;
   
@@ -1089,7 +1136,7 @@ void load_sequence()
     c = serial_peek();
   } while (c == -1);
   
-  if (c == ' ') 
+  if ((c == ' ')  || (c == 'N'))
   {
     Serial.read();
     serial_println_flash(PSTR("cancelled."));
